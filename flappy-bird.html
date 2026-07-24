@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flappy Bird</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2387cefa'/%3E%3Cpath d='M18 24c0-6 4-10 10-10h8c6 0 10 4 10 10s-4 10-10 10h-8c-6 0-10-4-10-10Z' fill='%23ffdf4d'/%3E%3Cpath d='M22 24c0-3 2-5 5-5h10c3 0 5 2 5 5s-2 5-5 5h-10c-3 0-5-2-5-5Z' fill='%23ffd54f'/%3E%3Cpath d='M33 20a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z' fill='%23fff'/%3E%3Cpath d='M33 20.5a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z' fill='%23000'/%3E%3Cpath d='M40 28c3 0 5 2 5 5s-2 5-5 5h-8c-3 0-5-2-5-5s2-5 5-5h8Z' fill='%23ff9f00'/%3E%3Cpath d='M12 44h40v4H12v-4Z' fill='%238b4513'/%3E%3Cpath d='M8 48h44v4H8v-4Z' fill='%23f39c12'/%3E%3C/svg%3E" />
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(180deg, #87cefa 0%, #d8f2ff 100%);
+        font-family: Arial, sans-serif;
+      }
+
+      .game-wrap {
+        text-align: center;
+      }
+
+      canvas {
+        border: 4px solid #2e7d32;
+        border-radius: 12px;
+        background: linear-gradient(180deg, #87cefa 0%, #bfe9ff 100%);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      .instructions {
+        margin-top: 12px;
+        color: #1b4d2e;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="game-wrap">
+      <canvas id="game" width="400" height="600"></canvas>
+      <div class="instructions">Click or press space to flap</div>
+    </div>
+
+    <script>
+      const canvas = document.getElementById('game');
+      const ctx = canvas.getContext('2d');
+
+      const WIDTH = canvas.width;
+      const HEIGHT = canvas.height;
+      const GRAVITY = 0.4;
+      const FLAP = -6.5;
+      const PIPE_WIDTH = 70;
+      const PIPE_GAP = 200;
+      const BASE_PIPE_SPEED = 2.1;
+      const SPEED_INCREMENT = 0.5;
+
+      const themes = [
+        { name: 'Ocean', sky: '#87cefa', grass: '#64b5f6', pipe: '#0288d1', pipeDark: '#01579b', cloud: '#e3f2fd', text: '#ffffff' },
+        { name: 'Sunset', sky: '#ff8a65', grass: '#e65100', pipe: '#d84315', pipeDark: '#bf360c', cloud: '#ffe0b2', text: '#ffffff' },
+        { name: 'Lavender', sky: '#b39ddb', grass: '#9575cd', pipe: '#7e57c2', pipeDark: '#512da8', cloud: '#ede7f6', text: '#ffffff' },
+        { name: 'Mint', sky: '#a5d6a7', grass: '#66bb6a', pipe: '#388e3c', pipeDark: '#1b5e20', cloud: '#e8f5e9', text: '#ffffff' },
+        { name: 'Peach', sky: '#ffccbc', grass: '#ffab91', pipe: '#ff7043', pipeDark: '#d84315', cloud: '#fff3e0', text: '#5d4037' },
+        { name: 'Twilight', sky: '#283593', grass: '#3949ab', pipe: '#1e88e5', pipeDark: '#0d47a1', cloud: '#8c9eff', text: '#ffffff' },
+        { name: 'Forest', sky: '#a5d6a7', grass: '#388e3c', pipe: '#2e7d32', pipeDark: '#1b5e20', cloud: '#c8e6c9', text: '#ffffff' },
+        { name: 'Aurora', sky: '#80deea', grass: '#4dd0e1', pipe: '#0097a7', pipeDark: '#006064', cloud: '#e0f7fa', text: '#ffffff' },
+        { name: 'Coral', sky: '#ffab91', grass: '#ff8a65', pipe: '#ff5722', pipeDark: '#e64a19', cloud: '#ffccbc', text: '#ffffff' },
+        { name: 'Stone', sky: '#cfd8dc', grass: '#90a4ae', pipe: '#607d8b', pipeDark: '#455a64', cloud: '#eceff1', text: '#263238' },
+        { name: 'Rose', sky: '#f8bbd0', grass: '#f48fb1', pipe: '#d81b60', pipeDark: '#880e4f', cloud: '#fce4ec', text: '#4a148c' },
+        { name: 'Gold', sky: '#fff9c4', grass: '#fff176', pipe: '#fbc02d', pipeDark: '#ff8f00', cloud: '#fffde7', text: '#5d4037' },
+        { name: 'Night', sky: '#212121', grass: '#424242', pipe: '#616161', pipeDark: '#263238', cloud: '#b0bec5', text: '#ffffff' },
+        { name: 'Emerald', sky: '#a5d6a7', grass: '#2e7d32', pipe: '#1b5e20', pipeDark: '#0d5302', cloud: '#c8e6c9', text: '#ffffff' },
+        { name: 'Bubblegum', sky: '#f48fb1', grass: '#f06292', pipe: '#c2185b', pipeDark: '#880e4f', cloud: '#fce4ec', text: '#ffffff' },
+        { name: 'Citrus', sky: '#fff9c4', grass: '#dce775', pipe: '#afb42b', pipeDark: '#827717', cloud: '#fffde7', text: '#33691e' },
+        { name: 'Sand', sky: '#ffe0b2', grass: '#ffcc80', pipe: '#fb8c00', pipeDark: '#ef6c00', cloud: '#fff3e0', text: '#5d4037' },
+        { name: 'Skyline', sky: '#b3e5fc', grass: '#81d4fa', pipe: '#0288d1', pipeDark: '#01579b', cloud: '#e1f5fe', text: '#ffffff' },
+        { name: 'Sage', sky: '#c5e1a5', grass: '#aed581', pipe: '#689f38', pipeDark: '#33691e', cloud: '#f1f8e9', text: '#1b5e20' },
+        { name: 'Ice', sky: '#e1f5fe', grass: '#b3e5fc', pipe: '#4fc3f7', pipeDark: '#0277bd', cloud: '#e0f7fa', text: '#01579b' },
+        { name: 'Plum', sky: '#ce93d8', grass: '#ba68c8', pipe: '#8e24aa', pipeDark: '#6a1b9a', cloud: '#f3e5f5', text: '#4a148c' },
+        { name: 'Moss', sky: '#dcedc8', grass: '#aed581', pipe: '#8bc34a', pipeDark: '#558b2f', cloud: '#f1f8e9', text: '#33691e' },
+        { name: 'Cherry', sky: '#ffebee', grass: '#ef9a9a', pipe: '#e53935', pipeDark: '#b71c1c', cloud: '#ffffff', text: '#880e4f' },
+        { name: 'Indigo', sky: '#9fa8da', grass: '#7986cb', pipe: '#3949ab', pipeDark: '#1a237e', cloud: '#e8eaf6', text: '#0d47a1' },
+        { name: 'Sunrise', sky: '#ffcc80', grass: '#ffb74d', pipe: '#fb8c00', pipeDark: '#e65100', cloud: '#fff3e0', text: '#4e342e' },
+        { name: 'Lemon', sky: '#fff59d', grass: '#fff176', pipe: '#fdd835', pipeDark: '#f9a825', cloud: '#fffde7', text: '#827717' },
+        { name: 'Minty', sky: '#a7ffeb', grass: '#64ffda', pipe: '#1de9b6', pipeDark: '#00bfa5', cloud: '#e0f7fa', text: '#00695c' },
+        { name: 'Coral Reef', sky: '#ffe0b2', grass: '#ffab91', pipe: '#ff7043', pipeDark: '#f4511e', cloud: '#fff3e0', text: '#bf360c' },
+        { name: 'Mauve', sky: '#e1bee7', grass: '#ce93d8', pipe: '#8e24aa', pipeDark: '#6a1b9a', cloud: '#f3e5f5', text: '#4a148c' },
+        { name: 'Goldrush', sky: '#fff8e1', grass: '#ffe082', pipe: '#ffb300', pipeDark: '#ff6f00', cloud: '#fffde7', text: '#5d4037' },
+        { name: 'Lava', sky: '#ff8a65', grass: '#d84315', pipe: '#bf360c', pipeDark: '#b71c1c', cloud: '#ffccbc', text: '#ffffff' },
+        { name: 'Mint Chocolate', sky: '#e0f2f1', grass: '#80cbc4', pipe: '#4db6ac', pipeDark: '#00695c', cloud: '#e0f7fa', text: '#004d40' },
+        { name: 'Blush', sky: '#f8bbd0', grass: '#f48fb1', pipe: '#ec407a', pipeDark: '#c2185b', cloud: '#fce4ec', text: '#880e4f' },
+        { name: 'Camel', sky: '#ffe0b2', grass: '#ffcc80', pipe: '#ff8f00', pipeDark: '#ef6c00', cloud: '#fff3e0', text: '#5d4037' },
+        { name: 'Lavender Breeze', sky: '#e8eaf6', grass: '#c5cae9', pipe: '#5c6bc0', pipeDark: '#283593', cloud: '#eceff1', text: '#1a237e' },
+        { name: 'Azure', sky: '#b3e5fc', grass: '#81d4fa', pipe: '#039be5', pipeDark: '#01579b', cloud: '#e1f5fe', text: '#012a4a' },
+        { name: 'Forest Mist', sky: '#dcedc8', grass: '#a5d6a7', pipe: '#4caf50', pipeDark: '#2e7d32', cloud: '#f1f8e9', text: '#1b5e20' },
+        { name: 'Autumn', sky: '#ffe0b2', grass: '#ffcc80', pipe: '#fb8c00', pipeDark: '#e65100', cloud: '#fff3e0', text: '#5d4037' },
+        { name: 'Storm', sky: '#90a4ae', grass: '#78909c', pipe: '#546e7a', pipeDark: '#263238', cloud: '#cfd8dc', text: '#263238' },
+        { name: 'Lavender Hill', sky: '#d1c4e9', grass: '#b39ddb', pipe: '#7e57c2', pipeDark: '#4527a0', cloud: '#ede7f6', text: '#311b92' },
+        { name: 'Palm', sky: '#b2ebf2', grass: '#4dd0e1', pipe: '#26c6da', pipeDark: '#00838f', cloud: '#e0f7fa', text: '#006064' },
+        { name: 'Mint Leaf', sky: '#ccff90', grass: '#b2ff59', pipe: '#76ff03', pipeDark: '#33691e', cloud: '#f1f8e9', text: '#1b5e20' },
+        { name: 'Lavender Dream', sky: '#e6ee9c', grass: '#dce775', pipe: '#c0ca33', pipeDark: '#827717', cloud: '#f9fbe7', text: '#33691e' },
+        { name: 'Twilight Glow', sky: '#b39ddb', grass: '#9575cd', pipe: '#7e57c2', pipeDark: '#512da8', cloud: '#ede7f6', text: '#311b92' },
+        { name: 'Neon', sky: '#e1bee7', grass: '#f06292', pipe: '#d81b60', pipeDark: '#880e4f', cloud: '#f3e5f5', text: '#ffffff' },
+        { name: 'Berry', sky: '#f3e5f5', grass: '#ce93d8', pipe: '#8e24aa', pipeDark: '#6a1b9a', cloud: '#f8bbd0', text: '#4a148c' },
+        { name: 'Chrome', sky: '#eceff1', grass: '#cfd8dc', pipe: '#90a4ae', pipeDark: '#455a64', cloud: '#f5f5f5', text: '#263238' },
+        { name: 'Watermelon', sky: '#ffebee', grass: '#ef9a9a', pipe: '#d32f2f', pipeDark: '#b71c1c', cloud: '#ffffff', text: '#880e4f' },
+        { name: 'Melon', sky: '#e8f5e9', grass: '#a5d6a7', pipe: '#43a047', pipeDark: '#1b5e20', cloud: '#f1f8e9', text: '#1b5e20' },
+        { name: 'Evening', sky: '#b3e5fc', grass: '#90caf9', pipe: '#1976d2', pipeDark: '#0d47a1', cloud: '#e3f2fd', text: '#0d47a1' }
+      ];
+
+      let currentPipeSpeed = BASE_PIPE_SPEED;
+      let currentTheme = themes[0];
+      let audioContext = null;
+      let backgroundMusic = null;
+      let gameOverSoundPlayed = false;
+
+      function initMusic() {
+        if (!backgroundMusic) {
+          backgroundMusic = new Audio('Flappy-music.mp3');
+          backgroundMusic.loop = true;
+          backgroundMusic.volume = 0.3;
+          backgroundMusic.preload = 'auto';
+          backgroundMusic.load();
+          backgroundMusic.addEventListener('error', (event) => {
+            console.warn('Background music failed to load', event);
+          });
+          backgroundMusic.addEventListener('canplaythrough', () => {
+            console.log('Background music loaded');
+          });
+          backgroundMusic.addEventListener('playing', () => {
+            console.log('Background music is playing');
+          });
+        }
+      }
+
+      function playBackgroundMusic() {
+        initMusic();
+        if (backgroundMusic.paused) {
+          backgroundMusic.currentTime = 0;
+          backgroundMusic.play().then(() => {
+            console.log('Background music started');
+          }).catch((error) => {
+            console.warn('Background music playback blocked', error);
+          });
+        }
+      }
+
+      function getRandomTheme() {
+        const available = themes.filter((theme) => theme !== currentTheme);
+        return available[Math.floor(Math.random() * available.length)];
+      }
+
+      function updateTheme() {
+        currentTheme = getRandomTheme();
+      }
+
+      function initAudio() {
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+      }
+
+      function playTone(frequency, duration = 0.12, type = 'sine', volume = 0.2) {
+        if (!audioContext) return;
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.type = type;
+        osc.frequency.value = frequency;
+        gain.gain.setValueAtTime(volume, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        osc.start();
+        osc.stop(audioContext.currentTime + duration);
+      }
+
+      function playFlapSound() {
+        initAudio();
+        playTone(440, 0.1, 'triangle', 0.2);
+      }
+
+      function playScoreSound() {
+        initAudio();
+        playTone(660, 0.08, 'sine', 0.15);
+        setTimeout(() => playTone(880, 0.08, 'sine', 0.12), 90);
+      }
+
+      function playGameOverSound() {
+        initAudio();
+        playTone(220, 0.24, 'square', 0.25);
+      }
+      let bird = {
+        x: 120,
+        y: HEIGHT / 2,
+        radius: 18,
+        velocity: 0
+      };
+
+      let pipes = [];
+      let score = 0;
+      let bestScore = 0;
+      let gameOver = false;
+      let started = false;
+      let paused = false;
+      let finished = false;
+      let endlessMode = false;
+      let motivationalMessage = '';
+      let messageTimer = 0;
+      let frame = 0;
+
+      const motivationalMessages = {
+        20: 'Nice! Keep it up!',
+        40: 'Great job! You are flying!',
+        50: 'Halfway there, keep it up!',
+        60: 'Awesome! Stay focused!',
+        80: 'So close! You got this!'
+      };
+
+      function resetGame() {
+        bird.y = HEIGHT / 2;
+        bird.velocity = 0;
+        pipes = [];
+        score = 0;
+        gameOver = false;
+        started = true;
+        paused = false;
+        finished = false;
+        endlessMode = false;
+        motivationalMessage = '';
+        messageTimer = 0;
+        frame = 0;
+        currentPipeSpeed = BASE_PIPE_SPEED;
+        currentTheme = getRandomTheme();
+        playBackgroundMusic();
+      }
+
+      function finishGame() {
+        finished = true;
+        gameOver = true;
+        motivationalMessage = 'You reached 100! Press R to restart or E for endless mode.';
+        messageTimer = 360;
+      }
+
+      function updateSpeed() {
+        currentPipeSpeed = BASE_PIPE_SPEED + Math.floor(score / 10) * SPEED_INCREMENT;
+      }
+
+      function flap() {
+        if (!started) {
+          resetGame();
+        }
+        playBackgroundMusic();
+        if (!gameOver) {
+          bird.velocity = FLAP;
+          playFlapSound();
+        }
+      }
+
+      function spawnPipe() {
+        const minHeight = 80;
+        const maxHeight = HEIGHT - PIPE_GAP - minHeight - 80;
+        const topHeight = minHeight + Math.random() * maxHeight;
+        pipes.push({
+          x: WIDTH,
+          topHeight,
+          passed: false
+        });
+      }
+
+      function update() {
+        if (!started || gameOver || paused) return;
+
+        frame += 1;
+        bird.velocity += GRAVITY;
+        bird.y += bird.velocity;
+
+        if (frame % 100 === 0) {
+          spawnPipe();
+        }
+
+        for (let i = pipes.length - 1; i >= 0; i -= 1) {
+          const pipe = pipes[i];
+          pipe.x -= currentPipeSpeed;
+
+          if (!pipe.passed && pipe.x + PIPE_WIDTH < bird.x) {
+            pipe.passed = true;
+            score += 1;
+            if (score % 20 === 0 && score < 100) {
+              motivationalMessage = motivationalMessages[score] || 'Keep going!';
+              messageTimer = 180;
+            }
+            if (score % 10 === 0) {
+              updateTheme();
+            }
+            if (score === 100 && !finished && !endlessMode) {
+              finishGame();
+            }
+            updateSpeed();
+            playScoreSound();
+          }
+
+          const hitTop = bird.y - bird.radius <= pipe.topHeight;
+          const hitBottom = bird.y + bird.radius >= pipe.topHeight + PIPE_GAP;
+          const hitPipe = bird.x + bird.radius > pipe.x && bird.x - bird.radius < pipe.x + PIPE_WIDTH && (hitTop || hitBottom);
+
+          if (hitPipe) {
+            if (!gameOver) {
+              playGameOverSound();
+            }
+            gameOver = true;
+          }
+
+          if (pipe.x + PIPE_WIDTH < 0) {
+            pipes.splice(i, 1);
+          }
+        }
+
+        if (bird.y + bird.radius >= HEIGHT || bird.y - bird.radius <= 0) {
+          if (!gameOver) {
+            playGameOverSound();
+          }
+          gameOver = true;
+        }
+
+        if (messageTimer > 0) {
+          messageTimer -= 1;
+          if (messageTimer === 0) {
+            motivationalMessage = '';
+          }
+        }
+      }
+
+      function drawBackground() {
+        ctx.fillStyle = currentTheme.sky;
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+        ctx.fillStyle = currentTheme.grass;
+        ctx.fillRect(0, HEIGHT - 60, WIDTH, 60);
+
+        for (let i = 0; i < 8; i += 1) {
+          const x = (i * 80 + frame * 0.6) % (WIDTH + 80) - 40;
+          const y = 100 + (i % 3) * 70;
+          ctx.fillStyle = currentTheme.cloud;
+          ctx.fillRect(x, y, 24, 8);
+        }
+      }
+
+      const birdImage = new Image();
+      birdImage.src = 'wizard.png';
+
+      function drawBird() {
+        ctx.save();
+        ctx.translate(bird.x, bird.y);
+        ctx.rotate(Math.max(-0.55, Math.min(0.55, bird.velocity / 8)));
+        const width = 80;
+        const height = 80;
+        ctx.drawImage(birdImage, -width / 2, -height / 2, width, height);
+        ctx.restore();
+      }
+
+      function drawPipes() {
+        pipes.forEach((pipe) => {
+          ctx.fillStyle = currentTheme.pipe;
+          ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.topHeight);
+          ctx.fillRect(pipe.x, pipe.topHeight + PIPE_GAP, PIPE_WIDTH, HEIGHT - (pipe.topHeight + PIPE_GAP));
+
+          ctx.fillStyle = currentTheme.pipeDark;
+          ctx.fillRect(pipe.x - 4, 0, 8, pipe.topHeight);
+          ctx.fillRect(pipe.x - 4, pipe.topHeight + PIPE_GAP, 8, HEIGHT - (pipe.topHeight + PIPE_GAP));
+        });
+      }
+
+      function drawScore() {
+        ctx.fillStyle = currentTheme.text;
+        ctx.font = 'bold 26px Arial';
+        ctx.fillText(`Score: ${score}`, 20, 40);
+        ctx.fillText(`Best: ${bestScore}`, 20, 72);
+        if (motivationalMessage) {
+          ctx.font = 'bold 18px Arial';
+          ctx.fillText(motivationalMessage, 20, 110);
+        }
+      }
+
+      function drawOverlay() {
+        if (!started) {
+          const buttonWidth = 120;
+          const buttonHeight = 50;
+          const buttonX = (WIDTH - buttonWidth) / 2;
+          const buttonY = 260;
+
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+          ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+          ctx.fillStyle = currentTheme.text;
+          ctx.font = 'bold 32px Arial';
+          ctx.fillText('Flappy Bird', 120, 220);
+
+          ctx.fillStyle = '#43a047';
+          ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
+          ctx.strokeStyle = '#1b5e20';
+          ctx.lineWidth = 4;
+          ctx.strokeRect(buttonX, buttonY, buttonWidth, buttonHeight);
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 24px Arial';
+          ctx.fillText('Play', buttonX + 30, buttonY + 33);
+
+          ctx.fillStyle = currentTheme.text;
+          ctx.font = '18px Arial';
+          ctx.fillText('Click the green button to start', 76, 340);
+        } else if (paused) {
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+          ctx.fillRect(0, 0, WIDTH, HEIGHT);
+          ctx.fillStyle = currentTheme.text;
+          ctx.font = 'bold 32px Arial';
+          ctx.fillText('Paused', 140, 250);
+          ctx.font = '20px Arial';
+          ctx.fillText('Press Escape to resume', 94, 290);
+        } else if (finished) {
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+          ctx.fillRect(0, 0, WIDTH, HEIGHT);
+          ctx.fillStyle = currentTheme.text;
+          ctx.font = 'bold 32px Arial';
+          ctx.fillText('You Win!', 150, 220);
+          ctx.font = '20px Arial';
+          ctx.fillText(`Score: ${score}`, 150, 260);
+          ctx.fillText(`Best: ${bestScore}`, 145, 290);
+          ctx.fillText('Press R to restart', 120, 330);
+          ctx.fillText('Press E for endless mode', 100, 360);
+        } else if (gameOver) {
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+          ctx.fillRect(0, 0, WIDTH, HEIGHT);
+          ctx.fillStyle = currentTheme.text;
+          ctx.font = 'bold 32px Arial';
+          ctx.fillText('Game Over', 120, 220);
+          ctx.font = '20px Arial';
+          ctx.fillText(`Score: ${score}`, 150, 270);
+          ctx.fillText(`Best: ${bestScore}`, 145, 300);
+          ctx.fillText('Press R to reset', 120, 340);
+        }
+      }
+
+      function draw() {
+        drawBackground();
+        drawPipes();
+        drawBird();
+        drawScore();
+        drawOverlay();
+      }
+
+      function loop() {
+        update();
+        draw();
+        requestAnimationFrame(loop);
+      }
+
+      window.addEventListener('keydown', (event) => {
+        if (event.code === 'Escape') {
+          if (started && !gameOver) {
+            paused = !paused;
+            event.preventDefault();
+          }
+          return;
+        }
+
+        if (event.code === 'Space' || event.code === 'ArrowUp' || event.code === 'KeyW') {
+          event.preventDefault();
+          if (paused) {
+            paused = false;
+            return;
+          }
+          flap();
+        }
+
+        if (event.code === 'KeyR') {
+          event.preventDefault();
+          if (score > bestScore) {
+            bestScore = score;
+          }
+          endlessMode = false;
+          resetGame();
+          playBackgroundMusic();
+          return;
+        }
+
+        if (event.code === 'KeyE' && finished) {
+          event.preventDefault();
+          endlessMode = true;
+          finished = false;
+          gameOver = false;
+          paused = false;
+          score = 100;
+          updateSpeed();
+          return;
+        }
+      });
+
+      function getCanvasClickPosition(event) {
+        const rect = canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        return { x, y };
+      }
+
+      function isInsidePlayButton(x, y) {
+        const buttonWidth = 120;
+        const buttonHeight = 50;
+        const buttonX = (WIDTH - buttonWidth) / 2;
+        const buttonY = 260;
+        return x >= buttonX && x <= buttonX + buttonWidth && y >= buttonY && y <= buttonY + buttonHeight;
+      }
+
+      canvas.addEventListener('click', (event) => {
+        if (!started) {
+          const pos = getCanvasClickPosition(event);
+          if (isInsidePlayButton(pos.x, pos.y)) {
+            resetGame();
+            playBackgroundMusic();
+          }
+          return;
+        }
+        flap();
+      });
+
+      canvas.addEventListener('touchstart', (event) => {
+        event.preventDefault();
+        if (!started) {
+          const touch = event.touches[0];
+          const rect = canvas.getBoundingClientRect();
+          const x = touch.clientX - rect.left;
+          const y = touch.clientY - rect.top;
+          if (isInsidePlayButton(x, y)) {
+            resetGame();
+            playBackgroundMusic();
+          }
+          return;
+        }
+        flap();
+      }, { passive: false });
+
+      loop();
+    </script>
+  </body>
+</html>
