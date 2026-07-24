@@ -388,9 +388,12 @@
           ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
           ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
+          ctx.save();
           ctx.fillStyle = currentTheme.text;
           ctx.font = 'bold 32px Arial';
-          ctx.fillText('Flappy Bird', 120, 220);
+          ctx.textAlign = 'center';
+          ctx.fillText('Flappy Bird', WIDTH / 2, 220);
+          ctx.restore();
 
           ctx.fillStyle = '#43a047';
           ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
@@ -424,6 +427,8 @@
           ctx.fillText(`Best: ${bestScore}`, 145, 290);
           ctx.fillText('Press R to restart', 120, 330);
           ctx.fillText('Press E for endless mode', 100, 360);
+          drawOverlayButton('Restart', 140, 380, 120, 40);
+          drawOverlayButton('Menu', 140, 430, 120, 40);
         } else if (gameOver) {
           ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
           ctx.fillRect(0, 0, WIDTH, HEIGHT);
@@ -434,6 +439,8 @@
           ctx.fillText(`Score: ${score}`, 150, 270);
           ctx.fillText(`Best: ${bestScore}`, 145, 300);
           ctx.fillText('Press R to reset', 120, 340);
+          drawOverlayButton('Restart', 140, 380, 120, 40);
+          drawOverlayButton('Menu', 140, 430, 120, 40);
         }
       }
 
@@ -507,31 +514,101 @@
         return x >= buttonX && x <= buttonX + buttonWidth && y >= buttonY && y <= buttonY + buttonHeight;
       }
 
+      function isInsideRestartButton(x, y) {
+        const buttonWidth = 120;
+        const buttonHeight = 40;
+        const buttonX = (WIDTH - buttonWidth) / 2;
+        const buttonY = 380;
+        return x >= buttonX && x <= buttonX + buttonWidth && y >= buttonY && y <= buttonY + buttonHeight;
+      }
+
+      function isInsideMenuButton(x, y) {
+        const buttonWidth = 120;
+        const buttonHeight = 40;
+        const buttonX = (WIDTH - buttonWidth) / 2;
+        const buttonY = 430;
+        return x >= buttonX && x <= buttonX + buttonWidth && y >= buttonY && y <= buttonY + buttonHeight;
+      }
+
+      function goToMenu() {
+        started = false;
+        gameOver = false;
+        finished = false;
+        paused = false;
+        endlessMode = false;
+        motivationalMessage = '';
+      }
+
+      function drawOverlayButton(label, x, y, width, height) {
+        ctx.fillStyle = '#43a047';
+        ctx.fillRect(x, y, width, height);
+        ctx.strokeStyle = '#1b5e20';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(x, y, width, height);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 18px Arial';
+        const textWidth = ctx.measureText(label).width;
+        ctx.fillText(label, x + (width - textWidth) / 2, y + (height + 10) / 2);
+      }
+
       canvas.addEventListener('click', (event) => {
+        const pos = getCanvasClickPosition(event);
         if (!started) {
-          const pos = getCanvasClickPosition(event);
           if (isInsidePlayButton(pos.x, pos.y)) {
             resetGame();
             playBackgroundMusic();
           }
           return;
         }
+
+        if ((gameOver || finished) && isInsideRestartButton(pos.x, pos.y)) {
+          if (score > bestScore) {
+            bestScore = score;
+          }
+          endlessMode = false;
+          resetGame();
+          playBackgroundMusic();
+          return;
+        }
+
+        if ((gameOver || finished) && isInsideMenuButton(pos.x, pos.y)) {
+          goToMenu();
+          return;
+        }
+
         flap();
       });
 
       canvas.addEventListener('touchstart', (event) => {
         event.preventDefault();
+        const touch = event.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+
         if (!started) {
-          const touch = event.touches[0];
-          const rect = canvas.getBoundingClientRect();
-          const x = touch.clientX - rect.left;
-          const y = touch.clientY - rect.top;
           if (isInsidePlayButton(x, y)) {
             resetGame();
             playBackgroundMusic();
           }
           return;
         }
+
+        if ((gameOver || finished) && isInsideRestartButton(x, y)) {
+          if (score > bestScore) {
+            bestScore = score;
+          }
+          endlessMode = false;
+          resetGame();
+          playBackgroundMusic();
+          return;
+        }
+
+        if ((gameOver || finished) && isInsideMenuButton(x, y)) {
+          goToMenu();
+          return;
+        }
+
         flap();
       }, { passive: false });
 
