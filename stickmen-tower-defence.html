@@ -411,7 +411,7 @@
       // Head
       const head = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       head.setAttribute('cx', '40');
-      head.setAttribute('cy', headY);
+      head.setAttribute('cy', String(headY));
       head.setAttribute('r', '8');
       head.setAttribute('fill', type.color);
       head.setAttribute('stroke', '#082032');
@@ -421,9 +421,9 @@
       // Body
       const body = document.createElementNS('http://www.w3.org/2000/svg', 'line');
       body.setAttribute('x1', '40');
-      body.setAttribute('y1', neckY);
+      body.setAttribute('y1', String(neckY));
       body.setAttribute('x2', '40');
-      body.setAttribute('y2', hipY);
+      body.setAttribute('y2', String(hipY));
       body.setAttribute('stroke', type.color);
       body.setAttribute('stroke-width', '2');
       svg.appendChild(body);
@@ -432,7 +432,7 @@
       const armL = document.createElementNS('http://www.w3.org/2000/svg', 'line');
       armL.setAttribute('x1', '40');
       armL.setAttribute('y1', '32');
-      armL.setAttribute('x2', 40 - armSwing);
+      armL.setAttribute('x2', String(40 - armSwing));
       armL.setAttribute('y2', '42');
       armL.setAttribute('stroke', type.color);
       armL.setAttribute('stroke-width', '1.5');
@@ -441,7 +441,7 @@
       const armR = document.createElementNS('http://www.w3.org/2000/svg', 'line');
       armR.setAttribute('x1', '40');
       armR.setAttribute('y1', '32');
-      armR.setAttribute('x2', 40 + armSwing);
+      armR.setAttribute('x2', String(40 + armSwing));
       armR.setAttribute('y2', '42');
       armR.setAttribute('stroke', type.color);
       armR.setAttribute('stroke-width', '1.5');
@@ -450,18 +450,18 @@
       // Legs
       const legL = document.createElementNS('http://www.w3.org/2000/svg', 'line');
       legL.setAttribute('x1', '40');
-      legL.setAttribute('y1', hipY);
-      legL.setAttribute('x2', 40 - legSwing);
-      legL.setAttribute('y2', footY);
+      legL.setAttribute('y1', String(hipY));
+      legL.setAttribute('x2', String(40 - legSwing));
+      legL.setAttribute('y2', String(footY));
       legL.setAttribute('stroke', type.color);
       legL.setAttribute('stroke-width', '1.5');
       svg.appendChild(legL);
 
       const legR = document.createElementNS('http://www.w3.org/2000/svg', 'line');
       legR.setAttribute('x1', '40');
-      legR.setAttribute('y1', hipY);
-      legR.setAttribute('x2', 40 + legSwing);
-      legR.setAttribute('y2', footY);
+      legR.setAttribute('y1', String(hipY));
+      legR.setAttribute('x2', String(40 + legSwing));
+      legR.setAttribute('y2', String(footY));
       legR.setAttribute('stroke', type.color);
       legR.setAttribute('stroke-width', '1.5');
       svg.appendChild(legR);
@@ -487,6 +487,143 @@
             orb.setAttribute('stroke', '#fbbf24');
             orb.setAttribute('stroke-width', '1');
             svg.appendChild(orb);
+          }
+          break;
+        case 2: // Sniper - rifle with scope
+          {
+            const rifle = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            rifle.setAttribute('x1', '48');
+            rifle.setAttribute('y1', '42');
+            rifle.setAttribute('x2', '68');
+            rifle.setAttribute('y2', '32');
+            rifle.setAttribute('stroke', '#64748b');
+            rifle.setAttribute('stroke-width', '3');
+            svg.appendChild(rifle);
+
+            const scope = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            scope.setAttribute('cx', '58');
+            scope.setAttribute('cy', '35');
+            scope.setAttribute('r', '3');
+            scope.setAttribute('fill', 'none');
+            scope.setAttribute('stroke', '#94a3b8');
+            scope.setAttribute('stroke-width', '1');
+            svg.appendChild(scope);
+          }
+          break;
+        case 3: // Machinegunner - gun
+          {
+            const gun = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            gun.setAttribute('x', '48');
+            gun.setAttribute('y', '38');
+            gun.setAttribute('width', '16');
+            gun.setAttribute('height', '5');
+            gun.setAttribute('fill', '#64748b');
+            gun.setAttribute('stroke', '#475569');
+            gun.setAttribute('stroke-width', '1');
+            svg.appendChild(gun);
+          }
+          break;
+        case 4: // Puncher - gloves
+          {
+            const glove1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            glove1.setAttribute('cx', '32');
+            glove1.setAttribute('cy', '36');
+            glove1.setAttribute('r', '4');
+            glove1.setAttribute('fill', '#dc2626');
+            glove1.setAttribute('stroke', '#991b1b');
+            glove1.setAttribute('stroke-width', '1');
+            svg.appendChild(glove1);
+
+            const glove2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            glove2.setAttribute('cx', '48');
+            glove2.setAttribute('cy', '36');
+            glove2.setAttribute('r', '4');
+            glove2.setAttribute('fill', '#dc2626');
+            glove2.setAttribute('stroke', '#991b1b');
+            glove2.setAttribute('stroke-width', '1');
+            svg.appendChild(glove2);
+          }
+          break;
+        case 5: // Ninja blade
+          {
+            const blade = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            blade.setAttribute('x1', '48');
+            blade.setAttribute('y1', '42');
+            blade.setAttribute('x2', '62');
+            blade.setAttribute('y2', '28');
+            blade.setAttribute('stroke', '#1f2937');
+            blade.setAttribute('stroke-width', '2.5');
+            svg.appendChild(blade);
+          }
+          break;
+        case 6: // Swordsman - sword
+          {
+            const sword = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            sword.setAttribute('x1', '48');
+            sword.setAttribute('y1', '42');
+            sword.setAttribute('x2', '64');
+            sword.setAttribute('y2', '26');
+            sword.setAttribute('stroke', '#f59e0b');
+            sword.setAttribute('stroke-width', '3');
+            svg.appendChild(sword);
+
+            const guard = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            guard.setAttribute('cx', '48');
+            guard.setAttribute('cy', '42');
+            guard.setAttribute('r', '3');
+            guard.setAttribute('fill', '#b45309');
+            svg.appendChild(guard);
+          }
+          break;
+        case 7: // Archer - bow
+          {
+            const bowStave = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            bowStave.setAttribute('x1', '48');
+            bowStave.setAttribute('y1', '30');
+            bowStave.setAttribute('x2', '48');
+            bowStave.setAttribute('y2', '52');
+            bowStave.setAttribute('stroke', '#92400e');
+            bowStave.setAttribute('stroke-width', '2');
+            svg.appendChild(bowStave);
+
+            const bowString = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            bowString.setAttribute('d', 'M 52 32 Q 58 42 52 50');
+            bowString.setAttribute('fill', 'none');
+            bowString.setAttribute('stroke', '#f5deb3');
+            bowString.setAttribute('stroke-width', '1.5');
+            svg.appendChild(bowString);
+
+            const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            arrow.setAttribute('x1', '52');
+            arrow.setAttribute('y1', '42');
+            arrow.setAttribute('x2', '65');
+            arrow.setAttribute('y2', '42');
+            arrow.setAttribute('stroke', '#22c55e');
+            arrow.setAttribute('stroke-width', '1.5');
+            svg.appendChild(arrow);
+          }
+          break;
+        case 8: // Lightsaber
+          {
+            const saber = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            saber.setAttribute('x1', '48');
+            saber.setAttribute('y1', '42');
+            saber.setAttribute('x2', '62');
+            saber.setAttribute('y2', '26');
+            saber.setAttribute('stroke', '#38bdf8');
+            saber.setAttribute('stroke-width', '4');
+            saber.setAttribute('stroke-linecap', 'round');
+            svg.appendChild(saber);
+
+            const glow = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            glow.setAttribute('x1', '48');
+            glow.setAttribute('y1', '42');
+            glow.setAttribute('x2', '62');
+            glow.setAttribute('y2', '26');
+            glow.setAttribute('stroke', '#8ecae6');
+            glow.setAttribute('stroke-width', '2');
+            glow.setAttribute('opacity', '0.6');
+            svg.appendChild(glow);
           }
           break;
         case 2: // Sniper - rifle
