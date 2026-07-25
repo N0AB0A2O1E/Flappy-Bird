@@ -644,17 +644,34 @@
     function drawStickman(x, y, color, scale = 1, phase = 0, isAttacking = false, attackPct = 0, isHit = false) {
       const hitBounce = isHit ? Math.sin(Date.now() / 50) * 3 : 0;
 
-      // Walk animation - smooth bobbing
-      const walkBob = Math.sin(phase) * 2 * scale;
-      const headBob = Math.sin(phase * 2) * 1.5 * scale;
+      // Natural walking cycle with realistic gait
+      // Vertical bob - head rises and falls with step
+      const verticalBob = Math.abs(Math.sin(phase)) * 2 * scale;
 
-      // Legs - opposite phase for natural walk
-      const legSwing = Math.sin(phase + Math.PI) * 8 * scale;
-      const leftLeg = -Math.sin(phase) * 8 * scale;
+      // Hip sway - natural side-to-side motion
+      const hipSway = Math.sin(phase) * 1.5 * scale;
 
-      // Arms - opposite to legs for natural walk
-      const armSwingLeft = Math.cos(phase) * 7 * scale;
-      const armSwingRight = Math.cos(phase + Math.PI) * 7 * scale;
+      // Legs with proper bending and movement
+      const leftPhase = phase;
+      const rightPhase = phase + Math.PI;
+
+      // Left leg animation - forward/back swing with knee bend
+      const leftLegForward = Math.sin(leftPhase) * 10 * scale;
+      const leftKneeBend = Math.max(0, Math.sin(leftPhase) * 6 * scale);
+
+      // Right leg animation - forward/back swing with knee bend
+      const rightLegForward = Math.sin(rightPhase) * 10 * scale;
+      const rightKneeBend = Math.max(0, Math.sin(rightPhase) * 6 * scale);
+
+      // Arms swing naturally opposite to legs
+      const leftArmSwing = Math.sin(rightPhase) * 12 * scale;
+      const leftArmLift = Math.max(0, Math.sin(rightPhase) * 3 * scale);
+
+      const rightArmSwing = Math.sin(leftPhase) * 12 * scale;
+      const rightArmLift = Math.max(0, Math.sin(leftPhase) * 3 * scale);
+
+      // Torso lean - subtle lean in direction of forward leg
+      const torsoLean = Math.sin(phase) * 1 * scale;
 
       // Attack modifications
       let attackArmExtend = 0;
@@ -662,16 +679,16 @@
       let attackRecoil = 0;
 
       if (isAttacking) {
-        attackArmExtend = 12 * attackPct * scale;
-        attackArmLift = -8 * attackPct * scale;
+        attackArmExtend = 14 * attackPct * scale;
+        attackArmLift = -10 * attackPct * scale;
         attackRecoil = -2 * Math.sin(attackPct * Math.PI) * scale;
       }
 
-      const headY = y - 14 * scale + headBob + hitBounce;
-      const neckY = y - 6 * scale + walkBob;
-      const bodyX = x + attackRecoil;
-      const hipY = y + 14 * scale + walkBob;
-      const footY = y + 24 * scale + walkBob;
+      const headY = y - 14 * scale - verticalBob + hitBounce;
+      const neckY = y - 6 * scale - verticalBob;
+      const bodyX = x + attackRecoil + torsoLean;
+      const hipX = x + hipSway + attackRecoil;
+      const hipY = y + 14 * scale - verticalBob;
 
       ctx.strokeStyle = color;
       ctx.lineWidth = 2.2 * scale;
@@ -679,7 +696,7 @@
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
 
-      // Head with shine
+      // Head
       ctx.beginPath();
       ctx.arc(bodyX, headY, 8 * scale, 0, Math.PI * 2);
       ctx.fill();
@@ -690,55 +707,67 @@
       ctx.arc(bodyX - 3 * scale, headY - 3 * scale, 2.5 * scale, 0, Math.PI * 2);
       ctx.fill();
 
-      // Body with slight lean
+      // Body - curves slightly with torso
       ctx.strokeStyle = color;
       ctx.lineWidth = 2.2 * scale;
-      const bodyLean = isAttacking ? 2 * attackPct * scale : 0;
       ctx.beginPath();
       ctx.moveTo(bodyX, neckY);
-      ctx.lineTo(bodyX + bodyLean, hipY);
+      ctx.quadraticCurveTo(bodyX + torsoLean * 0.5, (neckY + hipY) / 2, hipX, hipY);
       ctx.stroke();
 
-      // Left arm
-      const leftArmX = bodyX - 8 * scale + armSwingLeft;
-      const leftArmY = neckY + 6 * scale;
+      // Left arm - swings with right leg
+      const leftShoulderX = bodyX - 1 * scale;
+      const leftArmX = leftShoulderX - 8 * scale + leftArmSwing;
+      const leftArmY = neckY + 6 * scale - leftArmLift;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.2 * scale;
       ctx.beginPath();
-      ctx.moveTo(bodyX, neckY + 5 * scale);
+      ctx.moveTo(leftShoulderX, neckY + 5 * scale);
       ctx.lineTo(leftArmX, leftArmY);
       ctx.stroke();
 
-      // Right arm (weapon arm) with attack extension
-      const rightArmX = bodyX + 8 * scale + armSwingRight + attackArmExtend;
-      const rightArmY = neckY + 6 * scale + attackArmLift;
+      // Right arm (weapon arm) - swings with left leg, plus attack
+      const rightShoulderX = bodyX + 1 * scale;
+      const rightArmX = rightShoulderX + 8 * scale + rightArmSwing + attackArmExtend;
+      const rightArmY = neckY + 6 * scale - rightArmLift + attackArmLift;
       ctx.beginPath();
-      ctx.moveTo(bodyX, neckY + 5 * scale);
+      ctx.moveTo(rightShoulderX, neckY + 5 * scale);
       ctx.lineTo(rightArmX, rightArmY);
       ctx.stroke();
 
-      // Left leg
-      const leftFootX = bodyX - 6 * scale + leftLeg;
-      const leftFootY = footY;
+      // Left leg with knee bend
+      const leftHipX = hipX - 2 * scale;
+      const leftKneeX = leftHipX + leftLegForward * 0.5;
+      const leftKneeY = hipY + leftKneeBend;
+      const leftFootX = leftHipX + leftLegForward;
+      const leftFootY = y + 24 * scale - verticalBob;
+
       ctx.beginPath();
-      ctx.moveTo(bodyX, hipY);
+      ctx.moveTo(leftHipX, hipY);
+      ctx.lineTo(leftKneeX, leftKneeY);
       ctx.lineTo(leftFootX, leftFootY);
       ctx.stroke();
 
-      // Right leg
-      const rightFootX = bodyX + 6 * scale + legSwing;
-      const rightFootY = footY;
+      // Right leg with knee bend
+      const rightHipX = hipX + 2 * scale;
+      const rightKneeX = rightHipX + rightLegForward * 0.5;
+      const rightKneeY = hipY + rightKneeBend;
+      const rightFootX = rightHipX + rightLegForward;
+      const rightFootY = y + 24 * scale - verticalBob;
+
       ctx.beginPath();
-      ctx.moveTo(bodyX, hipY);
+      ctx.moveTo(rightHipX, hipY);
+      ctx.lineTo(rightKneeX, rightKneeY);
       ctx.lineTo(rightFootX, rightFootY);
       ctx.stroke();
 
       // Eyes
       ctx.fillStyle = '#000000';
-      const eyeOffsetY = headY;
       ctx.beginPath();
-      ctx.arc(bodyX - 2.5 * scale, eyeOffsetY - 2 * scale, 1.2 * scale, 0, Math.PI * 2);
+      ctx.arc(bodyX - 2.5 * scale, headY - 2 * scale, 1.2 * scale, 0, Math.PI * 2);
       ctx.fill();
       ctx.beginPath();
-      ctx.arc(bodyX + 2.5 * scale, eyeOffsetY - 2 * scale, 1.2 * scale, 0, Math.PI * 2);
+      ctx.arc(bodyX + 2.5 * scale, headY - 2 * scale, 1.2 * scale, 0, Math.PI * 2);
       ctx.fill();
     }
 
