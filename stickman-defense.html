@@ -641,53 +641,126 @@
       sfx('deploy');
     }
 
-    function drawStickman(x, y, color, scale = 1, isAttacking = false, attackPct = 0) {
-      const headY = y - 14 * scale;
-      const neckY = y - 6 * scale;
-      const hipY = y + 14 * scale;
-      const footY = y + 24 * scale;
+    function drawStickman(x, y, color, scale = 1, phase = 0, isAttacking = false, attackPct = 0, isHit = false) {
+      const hitBounce = isHit ? Math.sin(Date.now() / 50) * 3 : 0;
+
+      // Walk animation - smooth bobbing
+      const walkBob = Math.sin(phase) * 2 * scale;
+      const headBob = Math.sin(phase * 2) * 1.5 * scale;
+
+      // Legs - opposite phase for natural walk
+      const legSwing = Math.sin(phase + Math.PI) * 8 * scale;
+      const leftLeg = -Math.sin(phase) * 8 * scale;
+
+      // Arms - opposite to legs for natural walk
+      const armSwingLeft = Math.cos(phase) * 7 * scale;
+      const armSwingRight = Math.cos(phase + Math.PI) * 7 * scale;
+
+      // Attack modifications
+      let attackArmExtend = 0;
+      let attackArmLift = 0;
+      let attackRecoil = 0;
+
+      if (isAttacking) {
+        attackArmExtend = 12 * attackPct * scale;
+        attackArmLift = -8 * attackPct * scale;
+        attackRecoil = -2 * Math.sin(attackPct * Math.PI) * scale;
+      }
+
+      const headY = y - 14 * scale + headBob + hitBounce;
+      const neckY = y - 6 * scale + walkBob;
+      const bodyX = x + attackRecoil;
+      const hipY = y + 14 * scale + walkBob;
+      const footY = y + 24 * scale + walkBob;
 
       ctx.strokeStyle = color;
-      ctx.lineWidth = 2 * scale;
+      ctx.lineWidth = 2.2 * scale;
       ctx.fillStyle = color;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
 
-      // Head
+      // Head with shine
       ctx.beginPath();
-      ctx.arc(x, headY, 8 * scale, 0, Math.PI * 2);
+      ctx.arc(bodyX, headY, 8 * scale, 0, Math.PI * 2);
       ctx.fill();
 
-      // Body
+      // Head shine
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
       ctx.beginPath();
-      ctx.moveTo(x, neckY);
-      ctx.lineTo(x, hipY);
+      ctx.arc(bodyX - 3 * scale, headY - 3 * scale, 2.5 * scale, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Body with slight lean
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.2 * scale;
+      const bodyLean = isAttacking ? 2 * attackPct * scale : 0;
+      ctx.beginPath();
+      ctx.moveTo(bodyX, neckY);
+      ctx.lineTo(bodyX + bodyLean, hipY);
       ctx.stroke();
 
-      // Arms with attack extension
-      const armExtend = isAttacking ? 14 * attackPct : 0;
+      // Left arm
+      const leftArmX = bodyX - 8 * scale + armSwingLeft;
+      const leftArmY = neckY + 6 * scale;
       ctx.beginPath();
-      ctx.moveTo(x, neckY + 6 * scale);
-      ctx.lineTo(x - 8 * scale, y);
-      ctx.moveTo(x, neckY + 6 * scale);
-      ctx.lineTo(x + 8 * scale + armExtend, y - 6 * scale * attackPct);
+      ctx.moveTo(bodyX, neckY + 5 * scale);
+      ctx.lineTo(leftArmX, leftArmY);
       ctx.stroke();
 
-      // Legs
+      // Right arm (weapon arm) with attack extension
+      const rightArmX = bodyX + 8 * scale + armSwingRight + attackArmExtend;
+      const rightArmY = neckY + 6 * scale + attackArmLift;
       ctx.beginPath();
-      ctx.moveTo(x, hipY);
-      ctx.lineTo(x - 6 * scale, footY);
-      ctx.moveTo(x, hipY);
-      ctx.lineTo(x + 6 * scale, footY);
+      ctx.moveTo(bodyX, neckY + 5 * scale);
+      ctx.lineTo(rightArmX, rightArmY);
       ctx.stroke();
+
+      // Left leg
+      const leftFootX = bodyX - 6 * scale + leftLeg;
+      const leftFootY = footY;
+      ctx.beginPath();
+      ctx.moveTo(bodyX, hipY);
+      ctx.lineTo(leftFootX, leftFootY);
+      ctx.stroke();
+
+      // Right leg
+      const rightFootX = bodyX + 6 * scale + legSwing;
+      const rightFootY = footY;
+      ctx.beginPath();
+      ctx.moveTo(bodyX, hipY);
+      ctx.lineTo(rightFootX, rightFootY);
+      ctx.stroke();
+
+      // Eyes
+      ctx.fillStyle = '#000000';
+      const eyeOffsetY = headY;
+      ctx.beginPath();
+      ctx.arc(bodyX - 2.5 * scale, eyeOffsetY - 2 * scale, 1.2 * scale, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(bodyX + 2.5 * scale, eyeOffsetY - 2 * scale, 1.2 * scale, 0, Math.PI * 2);
+      ctx.fill();
     }
 
-    function drawWeapon(x, y, color, weaponId, isAttacking, attackPct) {
+    function drawWeapon(x, y, color, weaponId, isAttacking, attackPct, phase = 0) {
       const scale = 1;
       const direction = 1;
-      const handX = x + 8;
-      const handY = y + 2;
-      const weaponExtend = isAttacking ? 14 * attackPct : 0;
-      const endX = handX + (16 + weaponExtend) * direction;
-      const endY = handY - 4 - (6 * attackPct);
+
+      // Get arm position from animation
+      const armSwingRight = Math.cos(phase + Math.PI) * 7 * scale;
+      const walkBob = Math.sin(phase) * 2 * scale;
+
+      // Calculate hand position based on animated arm
+      const handX = x + 8 * scale + armSwingRight * 0.3;
+      const handY = y + 2 * scale + walkBob + 6 * scale;
+
+      // Weapon extension during attack
+      const weaponExtend = isAttacking ? 16 * attackPct * scale : 0;
+      const attackLift = isAttacking ? -8 * attackPct * scale : 0;
+      const attackRecoil = isAttacking ? -2 * Math.sin(attackPct * Math.PI) * scale : 0;
+
+      const endX = handX + (18 + weaponExtend) * direction + attackRecoil;
+      const endY = handY - 4 - (6 * attackPct) + attackLift;
 
       switch (weaponId) {
         case 1: // Wizard
@@ -777,7 +850,7 @@
       ctx.arc(tower.x, tower.y, size, 0, Math.PI * 2);
       ctx.stroke();
 
-      drawStickman(tower.x, tower.y, '#082032', 0.8);
+      drawStickman(tower.x, tower.y, '#082032', 0.8, 0, false, 0, false);
 
       // Health bar
       const healthW = size * 2.2;
@@ -1014,15 +1087,15 @@
       state.units.forEach(u => {
         const isAttacking = u.attackTimer > 0;
         const attackPct = isAttacking ? u.attackTimer / 200 : 0;
-        drawStickman(u.x, u.y, u.color, 1, isAttacking, attackPct);
-        drawWeapon(u.x, u.y, u.color, u.id, isAttacking, attackPct);
+        drawStickman(u.x, u.y, u.color, 1, u.walkPhase, isAttacking, attackPct, false);
+        drawWeapon(u.x, u.y, u.color, u.id, isAttacking, attackPct, u.walkPhase);
       });
 
       state.enemies.forEach(u => {
         const isAttacking = u.attackTimer > 0;
         const attackPct = isAttacking ? u.attackTimer / 200 : 0;
-        drawStickman(u.x, u.y, u.color, 1, isAttacking, attackPct);
-        drawWeapon(u.x, u.y, u.color, u.id, isAttacking, attackPct);
+        drawStickman(u.x, u.y, u.color, 1, u.walkPhase, isAttacking, attackPct, false);
+        drawWeapon(u.x, u.y, u.color, u.id, isAttacking, attackPct, u.walkPhase);
       });
 
       state.bullets.forEach(b => {
