@@ -835,30 +835,50 @@
       if (state.gameOver) resetGame();
     });
 
-    function drawStickman(x, y, scale = 1, color = '#ffffff', bob = 0, phase = 0) {
+    function drawStickman(x, y, scale = 1, color = '#ffffff', bob = 0, phase = 0, isAttacking = false, attackPct = 0) {
       const headY = y - 14 * scale + bob;
       const neckY = y - 6 * scale + bob;
       const hipY = y + 14 * scale + bob;
       const footY = y + 24 * scale + bob;
-      const armSwing = Math.sin(phase) * 8 * scale;
-      const legSwing = Math.cos(phase) * 8 * scale;
+
+      // Enhanced walking animation with more pronounced movement
+      const legSwing = Math.sin(phase) * 12 * scale;
+      const bobWalk = Math.sin(phase * 2) * 2 * scale;
+      const headBob = headY + bobWalk;
+
+      // Attacking animation - arm extends forward during attack
+      let armSwing = Math.cos(phase) * 8 * scale;
+      if (isAttacking) {
+        armSwing = Math.cos(phase) * 4 * scale;
+      }
 
       ctx.strokeStyle = color;
       ctx.lineWidth = 2 * scale;
       ctx.beginPath();
-      ctx.arc(x, headY, 8 * scale, 0, Math.PI * 2);
+      ctx.arc(x, headBob, 8 * scale, 0, Math.PI * 2);
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.moveTo(x, neckY);
+      ctx.moveTo(x, neckY + bobWalk);
       ctx.lineTo(x, hipY);
       ctx.stroke();
 
+      // Attacking arm extension
+      let leftArmX = x - armSwing;
+      let leftArmY = y + 10 * scale + bob;
+      let rightArmX = x + armSwing;
+      let rightArmY = y + 10 * scale + bob;
+
+      if (isAttacking) {
+        rightArmX += 14 * attackPct;
+        rightArmY -= 6 * attackPct;
+      }
+
       ctx.beginPath();
       ctx.moveTo(x, y + 2 * scale + bob);
-      ctx.lineTo(x - armSwing, y + 10 * scale + bob);
+      ctx.lineTo(leftArmX, leftArmY);
       ctx.moveTo(x, y + 2 * scale + bob);
-      ctx.lineTo(x + armSwing, y + 10 * scale + bob);
+      ctx.lineTo(rightArmX, rightArmY);
       ctx.stroke();
 
       ctx.beginPath();
@@ -869,15 +889,24 @@
       ctx.stroke();
     }
 
-    function drawWeapon(unit, x, y, bob = 0) {
+    function drawWeapon(unit, x, y, bob = 0, phase = 0) {
       const scale = 1;
       const direction = unit.team === TEAM_PLAYER ? 1 : -1;
       const attackPct = Math.max(0, unit.attackTimer) / 200;
-      const weaponExtend = 8 * attackPct;
-      const handX = x + 8 * direction * scale;
+      const weaponExtend = 14 * attackPct;
+
+      // Hand position follows arm swing during walking
+      const armSwing = Math.cos(phase) * 8 * scale;
+      const handX = x + (8 + armSwing * 0.5) * direction * scale;
       const handY = y + 10 * scale + bob;
+
+      // Weapon extends forward during attack
+      const attackLiftY = -6 * attackPct;
       const endX = handX + (16 + weaponExtend) * direction;
       const endY = handY - 4 * scale;
+
+      const endX = handX + (16 + weaponExtend) * direction;
+      const endY = handY - 4 * scale + attackLiftY;
 
       switch (unit.weaponType) {
         case 1: // Wizard staff - yellow staff with purple orb
@@ -912,23 +941,24 @@
 
         case 3: // Machinegunner - gray rectangular gun
           ctx.fillStyle = '#64748b';
-          ctx.fillRect(handX + direction * 2 * scale, handY - 4 * scale, 18 * scale * direction, 8 * scale);
+          ctx.fillRect(handX + direction * 2 * scale, handY - 4 * scale, (18 + weaponExtend * 0.7) * scale * direction, 8 * scale);
           ctx.strokeStyle = '#475569';
           ctx.lineWidth = 1 * scale;
-          ctx.strokeRect(handX + direction * 2 * scale, handY - 4 * scale, 18 * scale * direction, 8 * scale);
+          ctx.strokeRect(handX + direction * 2 * scale, handY - 4 * scale, (18 + weaponExtend * 0.7) * scale * direction, 8 * scale);
           break;
 
-        case 4: // Puncher - red gloves
+        case 4: // Puncher - red gloves with extension during attack
+          const punchExtend = 6 * attackPct;
           ctx.fillStyle = '#dc2626';
           ctx.beginPath();
-          ctx.arc(handX - direction * 8 * scale, handY - 8 * scale, 6 * scale, 0, Math.PI * 2);
+          ctx.arc(handX - direction * (8 + punchExtend) * scale, handY - 8 * scale, 6 * scale, 0, Math.PI * 2);
           ctx.fill();
           ctx.strokeStyle = '#991b1b';
           ctx.lineWidth = 1.5 * scale;
           ctx.stroke();
           ctx.fillStyle = '#dc2626';
           ctx.beginPath();
-          ctx.arc(handX + direction * 8 * scale, handY - 8 * scale, 6 * scale, 0, Math.PI * 2);
+          ctx.arc(handX + direction * (8 + punchExtend) * scale, handY - 8 * scale, 6 * scale, 0, Math.PI * 2);
           ctx.fill();
           ctx.strokeStyle = '#991b1b';
           ctx.lineWidth = 1.5 * scale;
@@ -979,17 +1009,18 @@
           ctx.moveTo(handX - direction * 2 * scale, handY);
           ctx.lineTo(handX + direction * 8 * scale, handY);
           ctx.stroke();
+          const arrowDraw = direction * (6 + weaponExtend * 0.8);
           ctx.strokeStyle = '#22c55e';
           ctx.lineWidth = 2 * scale;
           ctx.beginPath();
           ctx.moveTo(handX + direction * 8 * scale, handY - 1 * scale);
-          ctx.lineTo(endX + direction * 6 * scale, endY);
+          ctx.lineTo(handX + arrowDraw, handY + attackLiftY);
           ctx.stroke();
           break;
 
         case 8: // Lightsaber - glowing blue blade
           ctx.shadowColor = '#38bdf8';
-          ctx.shadowBlur = 15;
+          ctx.shadowBlur = 15 + 10 * attackPct;
           ctx.strokeStyle = '#38bdf8';
           ctx.lineWidth = 5 * scale;
           ctx.beginPath();
@@ -1025,7 +1056,7 @@
       ctx.arc(unit.x, unit.y - 12 + pulse, size / 2, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
-      drawStickman(unit.x, unit.y + pulse, unit.base ? 1.2 : 0.88, '#082032');
+      drawStickman(unit.x, unit.y + pulse, unit.base ? 1.2 : 0.88, '#082032', 0, 0, false, 0);
       if (unit.base) {
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 12px Arial';
@@ -1054,8 +1085,10 @@
     function drawUnit(unit) {
       const bob = Math.sin(unit.walkPhase || 0) * 3;
       const phase = unit.walkPhase || 0;
-      drawStickman(unit.x, unit.y, 1, unit.color, bob, phase);
-      drawWeapon(unit, unit.x, unit.y, bob);
+      const isAttacking = unit.attackTimer > 0;
+      const attackPct = Math.max(0, unit.attackTimer) / 200;
+      drawStickman(unit.x, unit.y, 1, unit.color, bob, phase, isAttacking, attackPct);
+      drawWeapon(unit, unit.x, unit.y, bob, phase);
       const healthWidth = 32;
       const healthHeight = 6;
       const healthPct = Math.max(0, unit.health / unit.maxHealth);
