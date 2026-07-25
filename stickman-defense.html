@@ -663,12 +663,12 @@
       const rightLegForward = Math.sin(rightPhase) * 10 * scale;
       const rightKneeBend = Math.max(0, Math.sin(rightPhase) * 6 * scale);
 
-      // Arms swing naturally opposite to legs
-      const leftArmSwing = Math.sin(rightPhase) * 12 * scale;
-      const leftArmLift = Math.max(0, Math.sin(rightPhase) * 3 * scale);
+      // Arms swing naturally opposite to legs - more subtle and hanging
+      const leftArmSwing = Math.sin(rightPhase) * 10 * scale;
+      const leftArmBend = Math.sin(rightPhase) * 2 * scale; // Slight bend, not lift
 
-      const rightArmSwing = Math.sin(leftPhase) * 12 * scale;
-      const rightArmLift = Math.max(0, Math.sin(leftPhase) * 3 * scale);
+      const rightArmSwing = Math.sin(leftPhase) * 10 * scale;
+      const rightArmBend = Math.sin(leftPhase) * 2 * scale;
 
       // Torso lean - subtle lean in direction of forward leg
       const torsoLean = Math.sin(phase) * 1 * scale;
@@ -715,10 +715,10 @@
       ctx.quadraticCurveTo(bodyX + torsoLean * 0.5, (neckY + hipY) / 2, hipX, hipY);
       ctx.stroke();
 
-      // Left arm - swings with right leg
+      // Left arm - swings with right leg, hangs naturally
       const leftShoulderX = bodyX - 1 * scale;
       const leftArmX = leftShoulderX - 8 * scale + leftArmSwing;
-      const leftArmY = neckY + 6 * scale - leftArmLift;
+      const leftArmY = neckY + 8 * scale + leftArmBend;
       ctx.strokeStyle = color;
       ctx.lineWidth = 2.2 * scale;
       ctx.beginPath();
@@ -729,7 +729,7 @@
       // Right arm (weapon arm) - swings with left leg, plus attack
       const rightShoulderX = bodyX + 1 * scale;
       const rightArmX = rightShoulderX + 8 * scale + rightArmSwing + attackArmExtend;
-      const rightArmY = neckY + 6 * scale - rightArmLift + attackArmLift;
+      const rightArmY = neckY + 8 * scale + rightArmBend + attackArmLift;
       ctx.beginPath();
       ctx.moveTo(rightShoulderX, neckY + 5 * scale);
       ctx.lineTo(rightArmX, rightArmY);
