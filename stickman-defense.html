@@ -618,11 +618,14 @@
       let nearest = null;
       let nearestDist = Infinity;
 
-      const targets = unit.team === 'player' ?
-        state.enemies.concat(state.towers.filter(t => t.team === 'enemy')) :
-        state.units.concat(state.towers.filter(t => t.team === 'player'));
+      // Prioritize units over towers for combat units
+      const enemies = unit.team === 'player' ? state.enemies : state.units;
+      const towers = unit.team === 'player' ?
+        state.towers.filter(t => t.team === 'enemy' && t.health > 0) :
+        state.towers.filter(t => t.team === 'player' && t.health > 0);
 
-      targets.forEach(t => {
+      // Check enemies first
+      enemies.forEach(t => {
         if (t.health <= 0) return;
         const dist = Math.hypot(t.x - unit.x, t.y - unit.y);
         if (dist < nearestDist) {
@@ -630,6 +633,18 @@
           nearest = t;
         }
       });
+
+      // Only target towers if no enemies nearby
+      if (nearestDist > 300) {
+        towers.forEach(t => {
+          if (t.health <= 0) return;
+          const dist = Math.hypot(t.x - unit.x, t.y - unit.y);
+          if (dist < nearestDist) {
+            nearestDist = dist;
+            nearest = t;
+          }
+        });
+      }
 
       return { target: nearest, dist: nearestDist };
     }
@@ -683,18 +698,26 @@
 
         const { target, dist } = findNearestEnemy(u);
         if (target) {
+          // Move towards target if out of range
           if (dist > u.range) {
-            const moveAmt = Math.min(u.speed, dist - u.range);
-            u.x += (target.x - u.x) / dist * moveAmt;
-            u.y += (target.y - u.y) / dist * moveAmt;
+            const dx = target.x - u.x;
+            const dy = target.y - u.y;
+            const moveDist = Math.min(u.speed * delta / 16, dist - u.range);
+            u.x += (dx / dist) * moveDist;
+            u.y += (dy / dist) * moveDist;
           }
+          // Attack when in range
           if (dist <= u.range && u.cooldown <= 0) {
             state.bullets.push({ x: u.x, y: u.y, tx: target, damage: u.damage, team: 'player' });
             u.cooldown = u.fireRate;
             u.attackTimer = 200;
             sfx('shoot');
           }
+        } else {
+          // Move forward if no target
+          u.x += u.speed * delta / 16;
         }
+
         u.x = Math.min(u.x, WIDTH - 20);
       });
 
@@ -706,18 +729,26 @@
 
         const { target, dist } = findNearestEnemy(u);
         if (target) {
+          // Move towards target if out of range
           if (dist > u.range) {
-            const moveAmt = Math.min(Math.abs(u.speed), dist - u.range);
-            u.x += (target.x - u.x) / dist * moveAmt;
-            u.y += (target.y - u.y) / dist * moveAmt;
+            const dx = target.x - u.x;
+            const dy = target.y - u.y;
+            const moveDist = Math.min(Math.abs(u.speed) * delta / 16, dist - u.range);
+            u.x += (dx / dist) * moveDist;
+            u.y += (dy / dist) * moveDist;
           }
+          // Attack when in range
           if (dist <= u.range && u.cooldown <= 0) {
             state.bullets.push({ x: u.x, y: u.y, tx: target, damage: u.damage, team: 'enemy' });
             u.cooldown = u.fireRate;
             u.attackTimer = 200;
             sfx('shoot');
           }
+        } else {
+          // Move forward if no target
+          u.x += u.speed * delta / 16;
         }
+
         u.x = Math.max(u.x, 20);
       });
 
