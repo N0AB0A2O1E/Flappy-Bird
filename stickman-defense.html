@@ -280,18 +280,18 @@
     const ENEMY_DEPLOY_START = WIDTH - 200;
     const GAME_SPEED = 1;
 
-    // Enhanced audio context with better sounds
+    // Soft audio context with pleasant sounds
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-    function playSound(notes = [], duration = 0.15) {
+    function playSound(notes = [], duration = 0.12) {
       if (audioCtx.state === 'suspended') audioCtx.resume();
       const now = audioCtx.currentTime;
-      notes.forEach((note, i) => {
+      notes.forEach((note) => {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = note.type || 'sine';
         osc.frequency.value = note.freq;
-        gain.gain.setValueAtTime(note.vol || 0.1, now);
+        gain.gain.setValueAtTime(note.vol || 0.04, now);
         gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
         osc.connect(gain);
         gain.connect(audioCtx.destination);
@@ -304,35 +304,36 @@
       switch (name) {
         case 'deploy':
           playSound([
-            { freq: 440, vol: 0.12, type: 'triangle' },
-            { freq: 660, vol: 0.08, type: 'sine' }
-          ], 0.1);
+            { freq: 523, vol: 0.05, type: 'sine' },
+            { freq: 659, vol: 0.03, type: 'sine' }
+          ], 0.08);
           break;
         case 'hit':
-          playSound([{ freq: 200, vol: 0.1, type: 'square' }], 0.05);
+          playSound([{ freq: 350, vol: 0.03, type: 'sine' }], 0.04);
           break;
         case 'enemyDeploy':
           playSound([
-            { freq: 220, vol: 0.12, type: 'square' },
-            { freq: 330, vol: 0.08, type: 'triangle' }
-          ], 0.08);
+            { freq: 392, vol: 0.04, type: 'sine' },
+            { freq: 523, vol: 0.03, type: 'sine' }
+          ], 0.07);
           break;
         case 'shoot':
-          playSound([{ freq: 800, vol: 0.08, type: 'square' }], 0.06);
+          // Muted shoot sound
+          playSound([{ freq: 600, vol: 0.02, type: 'sine' }], 0.03);
           break;
         case 'upgrade':
           playSound([
-            { freq: 400, vol: 0.1 },
-            { freq: 600, vol: 0.1 },
-            { freq: 800, vol: 0.1 }
-          ], 0.12);
+            { freq: 523, vol: 0.04 },
+            { freq: 659, vol: 0.04 },
+            { freq: 784, vol: 0.04 }
+          ], 0.1);
           break;
         case 'gameover':
           playSound([
-            { freq: 300, vol: 0.15 },
-            { freq: 200, vol: 0.12 },
-            { freq: 150, vol: 0.1 }
-          ], 0.3);
+            { freq: 349, vol: 0.05 },
+            { freq: 261, vol: 0.04 },
+            { freq: 195, vol: 0.03 }
+          ], 0.2);
           break;
       }
     }
