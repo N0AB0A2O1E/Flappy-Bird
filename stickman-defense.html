@@ -1067,7 +1067,9 @@
       // Update units
       state.units.forEach(u => {
         if (u.health <= 0) return;
-        u.walkPhase += delta * 0.008;
+        if (u.attackTimer <= 0) {
+          u.walkPhase += delta * 0.008;
+        }
         if (u.cooldown > 0) u.cooldown -= delta;
         if (u.attackTimer > 0) u.attackTimer -= delta;
 
@@ -1098,7 +1100,9 @@
 
       state.enemies.forEach(u => {
         if (u.health <= 0) return;
-        u.walkPhase += delta * 0.008;
+        if (u.attackTimer <= 0) {
+          u.walkPhase += delta * 0.008;
+        }
         if (u.cooldown > 0) u.cooldown -= delta;
         if (u.attackTimer > 0) u.attackTimer -= delta;
 
