@@ -1298,6 +1298,8 @@
         });
         state.status = 'Weapons upgraded!';
         sfx('upgrade');
+        // Update the cost display
+        document.getElementById('upgradeCost').textContent = `$${state.upgradeCost}`;
         updateUI();
       }
     });
