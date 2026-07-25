@@ -397,7 +397,10 @@
         <p>Watch your gold - don't overspend early</p>
       </div>
 
-      <button id="playBtn" class="play-btn">Start Game</button>
+      <div style="display: flex; gap: 10px; margin: 20px 0;">
+        <button id="playBtn" class="play-btn" style="flex: 1;">Start Game</button>
+        <button id="loadBtn" class="play-btn" style="flex: 1; display: none;">Continue Game</button>
+      </div>
 
       <p class="footer">Made with strategy & stickmen</p>
     </div>
@@ -521,6 +524,8 @@
       { id: 8, name: 'Sith', icon: '🔴', cost: 400, range: 160, fireRate: 500, damage: 48, health: 100, spawnCooldown: 850, color: '#8b5cf6' },
     ];
 
+    let gamePaused = true; // Game starts paused in menu
+
     const state = {
       units: [],
       enemies: [],
@@ -604,6 +609,40 @@
         ctx.textAlign = 'center';
         ctx.fillText(n.text, n.x, n.y);
       });
+    }
+
+    function saveGame() {
+      const gameData = {
+        wave: state.wave,
+        money: state.money,
+        playerKills: state.playerKills,
+        upgradeLevel: state.upgradeLevel,
+        towerUpgradeLevel: state.towerUpgradeLevel,
+      };
+      localStorage.setItem('stickmanDefenseSave', JSON.stringify(gameData));
+      state.status = 'Game saved!';
+      updateUI();
+    }
+
+    function loadGame() {
+      const saved = localStorage.getItem('stickmanDefenseSave');
+      if (saved) {
+        const gameData = JSON.parse(saved);
+        state.wave = gameData.wave;
+        state.money = gameData.money;
+        state.moneyFloat = gameData.money;
+        state.playerKills = gameData.playerKills;
+        state.upgradeLevel = gameData.upgradeLevel;
+        state.upgradeCost = 150 + state.upgradeLevel * 100;
+        state.towerUpgradeLevel = gameData.towerUpgradeLevel;
+        state.towerUpgradeCost = 200 + state.towerUpgradeLevel * 150;
+        return true;
+      }
+      return false;
+    }
+
+    function hasSavedGame() {
+      return localStorage.getItem('stickmanDefenseSave') !== null;
     }
 
     function updateUI() {
@@ -980,7 +1019,7 @@
     }
 
     function update(delta) {
-      if (state.gameOver) return;
+      if (state.gameOver || gamePaused) return;
 
       // Update effects
       updateParticles(delta);
@@ -1258,11 +1297,35 @@
     const menuScreen = document.getElementById('menuScreen');
     const gameContainer = document.getElementById('gameContainer');
     const playBtn = document.getElementById('playBtn');
+    const loadBtn = document.getElementById('loadBtn');
+
+    // Show load button if there's a saved game
+    if (hasSavedGame()) {
+      loadBtn.style.display = 'block';
+    }
 
     playBtn.addEventListener('click', () => {
+      gamePaused = false;
       menuScreen.style.display = 'none';
       gameContainer.style.display = 'grid';
     });
+
+    loadBtn.addEventListener('click', () => {
+      if (loadGame()) {
+        gamePaused = false;
+        menuScreen.style.display = 'none';
+        gameContainer.style.display = 'grid';
+        state.status = 'Game loaded!';
+        updateUI();
+      }
+    });
+
+    // Auto-save every 30 seconds during gameplay
+    setInterval(() => {
+      if (!gamePaused && !state.gameOver) {
+        saveGame();
+      }
+    }, 30000);
 
     // Keyboard shortcuts for unit deployment (1-8)
     document.addEventListener('keydown', (e) => {
@@ -1355,12 +1418,15 @@
         state.units = [];
         state.enemies = [];
         state.bullets = [];
+        state.playerKills = 0;
         state.enemyUnitsLeft = 6;
         state.upgradeLevel = 0;
         state.upgradeCost = 150;
         state.towerUpgradeLevel = 0;
         state.towerUpgradeCost = 200;
         state.spawnCooldowns = {};
+        state.particles = [];
+        state.floatingNumbers = [];
         state.towers = [
           { x: 100, y: 180, range: 240, fireRate: 80, cooldown: 0, health: 1200, maxHealth: 1200, team: 'player', type: 'tower' },
           { x: 100, y: 495, range: 240, fireRate: 80, cooldown: 0, health: 1200, maxHealth: 1200, team: 'player', type: 'tower' },
@@ -1372,6 +1438,7 @@
         state.gameOver = false;
         state.status = 'Ready';
         state.enemyDeployTimer = 1500;
+        gamePaused = false;
         updateUI();
       }
     });
