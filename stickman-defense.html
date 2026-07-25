@@ -247,11 +247,11 @@
         </div>
         <div class="stat-card">
           <div class="stat-label">Your Gold</div>
-          <div class="stat-value" id="moneyDisplay">500</div>
+          <div class="stat-value" id="moneyDisplay">400</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Enemy Gold</div>
-          <div class="stat-value" id="enemyMoneyDisplay">450</div>
+          <div class="stat-value" id="enemyMoneyDisplay">400</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Status</div>
@@ -337,12 +337,12 @@
 
     const UNITS = [
       { id: 1, name: 'Wizard', icon: '🧙', cost: 340, range: 200, fireRate: 700, damage: 32, health: 90, spawnCooldown: 600, color: '#a855f7' },
-      { id: 2, name: 'Sniper', icon: '🎯', cost: 380, range: 280, fireRate: 800, damage: 70, health: 70, spawnCooldown: 800, color: '#0ea5e9' },
+      { id: 2, name: 'Sniper', icon: '🎯', cost: 450, range: 280, fireRate: 800, damage: 70, health: 70, spawnCooldown: 800, color: '#0ea5e9' },
       { id: 3, name: 'Gunner', icon: '💥', cost: 300, range: 120, fireRate: 100, damage: 6, health: 100, spawnCooldown: 300, color: '#f97316' },
-      { id: 4, name: 'Boxer', icon: '🥊', cost: 350, range: 80, fireRate: 480, damage: 38, health: 140, spawnCooldown: 700, color: '#ef4444' },
+      { id: 4, name: 'Boxer', icon: '🥊', cost: 420, range: 80, fireRate: 480, damage: 38, health: 140, spawnCooldown: 700, color: '#ef4444' },
       { id: 5, name: 'Ninja', icon: '🥷', cost: 360, range: 150, fireRate: 450, damage: 25, health: 80, spawnCooldown: 500, color: '#1e293b' },
       { id: 6, name: 'Knight', icon: '⚔️', cost: 370, range: 120, fireRate: 550, damage: 28, health: 150, spawnCooldown: 750, color: '#c084fc' },
-      { id: 7, name: 'Archer', icon: '🏹', cost: 330, range: 240, fireRate: 650, damage: 22, health: 80, spawnCooldown: 550, color: '#10b981' },
+      { id: 7, name: 'Archer', icon: '🏹', cost: 310, range: 240, fireRate: 650, damage: 22, health: 80, spawnCooldown: 550, color: '#10b981' },
       { id: 8, name: 'Sith', icon: '🔴', cost: 400, range: 160, fireRate: 500, damage: 48, health: 100, spawnCooldown: 850, color: '#8b5cf6' },
     ];
 
@@ -358,10 +358,10 @@
         { x: WIDTH - 280, y: 337, range: 240, fireRate: 70, cooldown: 0, health: 4000, maxHealth: 4000, team: 'enemy', type: 'core' },
       ],
       bullets: [],
-      money: 500,
-      moneyFloat: 500,
-      enemyMoney: 450,
-      enemyMoneyFloat: 450,
+      money: 400,
+      moneyFloat: 400,
+      enemyMoney: 400,
+      enemyMoneyFloat: 400,
       wave: 1,
       enemyUnitsLeft: 6,
       enemyDeployTimer: 1500,
@@ -375,8 +375,8 @@
     let dragState = null;
     let lastTime = Date.now();
 
-    const PLAYER_INCOME = 60;
-    const ENEMY_INCOME = 50;
+    const PLAYER_INCOME = 55;
+    const ENEMY_INCOME = 55;
 
     function updateUI() {
       document.getElementById('waveDisplay').textContent = state.wave;
@@ -882,10 +882,10 @@
     canvas.addEventListener('click', () => {
       if (state.gameOver) {
         state.wave = 1;
-        state.money = 500;
-        state.moneyFloat = 500;
-        state.enemyMoney = 450;
-        state.enemyMoneyFloat = 450;
+        state.money = 400;
+        state.moneyFloat = 400;
+        state.enemyMoney = 400;
+        state.enemyMoneyFloat = 400;
         state.units = [];
         state.enemies = [];
         state.bullets = [];
