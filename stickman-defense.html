@@ -409,6 +409,7 @@
       <div class="units-grid" id="unitsGrid"></div>
       <div class="upgrade-section">
         <button id="upgradeBtn" class="upgrade-btn">⚡ Upgrade Weapons - <span id="upgradeCost">$150</span></button>
+        <button id="upgradeTowerBtn" class="upgrade-btn">🏰 Upgrade Towers - <span id="upgradeTowerCost">$200</span></button>
       </div>
     </div>
 
@@ -545,6 +546,8 @@
       enemyDeployTimer: 1500,
       upgradeLevel: 0,
       upgradeCost: 150,
+      towerUpgradeLevel: 0,
+      towerUpgradeCost: 200,
       gameOver: false,
       status: 'Ready',
       spawnCooldowns: {},
@@ -1296,10 +1299,25 @@
         state.units.forEach(u => {
           u.damage = Math.round(u.baseDamage * (1 + state.upgradeLevel * 0.15));
         });
-        state.status = 'Weapons upgraded!';
+        state.status = 'Unit weapons upgraded!';
         sfx('upgrade');
-        // Update the cost display
         document.getElementById('upgradeCost').textContent = `$${state.upgradeCost}`;
+        updateUI();
+      }
+    });
+
+    document.getElementById('upgradeTowerBtn').addEventListener('click', () => {
+      if (state.money >= state.towerUpgradeCost) {
+        state.money -= state.towerUpgradeCost;
+        state.moneyFloat -= state.towerUpgradeCost;
+        state.towerUpgradeLevel++;
+        state.towerUpgradeCost = 200 + state.towerUpgradeLevel * 150;
+        state.towers.forEach(tower => {
+          tower.fireRate = Math.max(20, tower.fireRate - 5);
+        });
+        state.status = 'Tower weapons upgraded!';
+        sfx('upgrade');
+        document.getElementById('upgradeTowerCost').textContent = `$${state.towerUpgradeCost}`;
         updateUI();
       }
     });
@@ -1340,6 +1358,8 @@
         state.enemyUnitsLeft = 6;
         state.upgradeLevel = 0;
         state.upgradeCost = 150;
+        state.towerUpgradeLevel = 0;
+        state.towerUpgradeCost = 200;
         state.spawnCooldowns = {};
         state.towers = [
           { x: 100, y: 180, range: 240, fireRate: 80, cooldown: 0, health: 1200, maxHealth: 1200, team: 'player', type: 'tower' },
