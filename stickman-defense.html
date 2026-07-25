@@ -220,6 +220,129 @@
       border: 1px solid rgba(148, 163, 184, 0.3);
     }
 
+    .menu-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .menu-content {
+      max-width: 600px;
+      padding: 40px;
+      text-align: center;
+      background: rgba(30, 41, 59, 0.8);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 20px;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+    }
+
+    .menu-content h1 {
+      font-size: 3rem;
+      margin: 0 0 10px 0;
+      color: #f1f5f9;
+      text-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+    }
+
+    .tagline {
+      color: #94a3b8;
+      font-size: 1.2rem;
+      margin: 0 0 30px 0;
+    }
+
+    .instructions {
+      text-align: left;
+      background: rgba(51, 65, 85, 0.4);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+
+    .instructions h2 {
+      margin: 0 0 15px 0;
+      color: #f1f5f9;
+      font-size: 1.2rem;
+    }
+
+    .instructions ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .instructions li {
+      color: #cbd5e1;
+      margin: 8px 0;
+      padding-left: 25px;
+      position: relative;
+      font-size: 0.95rem;
+    }
+
+    .instructions li:before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: #3b82f6;
+      font-weight: bold;
+    }
+
+    .tips {
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+
+    .tips h3 {
+      margin: 0 0 12px 0;
+      color: #38bdf8;
+      font-size: 1.1rem;
+    }
+
+    .tips p {
+      margin: 8px 0;
+      color: #cbd5e1;
+      font-size: 0.9rem;
+    }
+
+    .play-btn {
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      color: #f1f5f9;
+      border: none;
+      padding: 16px 60px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin: 20px 0;
+      box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+    }
+
+    .play-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 40px rgba(59, 130, 246, 0.5);
+    }
+
+    .play-btn:active {
+      transform: translateY(0);
+    }
+
+    .footer {
+      margin: 20px 0 0 0;
+      color: #64748b;
+      font-size: 0.85rem;
+    }
+
     @media (max-width: 1024px) {
       .game-container {
         grid-template-columns: 1fr;
@@ -228,11 +351,59 @@
       .sidebar {
         height: auto;
       }
+
+      .menu-content {
+        padding: 30px;
+      }
+
+      .menu-content h1 {
+        font-size: 2.2rem;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .menu-content {
+        padding: 20px;
+        margin: 20px;
+      }
+
+      .menu-content h1 {
+        font-size: 1.8rem;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="game-container">
+  <div id="menuScreen" class="menu-screen">
+    <div class="menu-content">
+      <h1>⚔️ Stickman Defense</h1>
+      <p class="tagline">Strategic Tower Defense Battle</p>
+
+      <div class="instructions">
+        <h2>How to Play</h2>
+        <ul>
+          <li><strong>Drag units</strong> from the sidebar to deploy on the left side</li>
+          <li><strong>Manage gold</strong> wisely - earn 55 gold/second</li>
+          <li><strong>Upgrade weapons</strong> to boost unit damage</li>
+          <li><strong>Defend your core</strong> tower from enemy waves</li>
+          <li><strong>Attack enemy towers</strong> to push back and win</li>
+        </ul>
+      </div>
+
+      <div class="tips">
+        <h3>💡 Tips</h3>
+        <p>Mix ranged and melee units for balance</p>
+        <p>Upgrade weapons between waves for better damage</p>
+        <p>Watch your gold - don't overspend early</p>
+      </div>
+
+      <button id="playBtn" class="play-btn">Start Game</button>
+
+      <p class="footer">Made with strategy & stickmen</p>
+    </div>
+  </div>
+
+  <div class="game-container" id="gameContainer" style="display: none;">
     <div class="sidebar">
       <h1>⚔️ Units</h1>
       <div class="units-grid" id="unitsGrid"></div>
@@ -871,6 +1042,16 @@
       draw();
       requestAnimationFrame(gameLoop);
     }
+
+    // Menu handling
+    const menuScreen = document.getElementById('menuScreen');
+    const gameContainer = document.getElementById('gameContainer');
+    const playBtn = document.getElementById('playBtn');
+
+    playBtn.addEventListener('click', () => {
+      menuScreen.style.display = 'none';
+      gameContainer.style.display = 'grid';
+    });
 
     document.getElementById('unitsGrid').appendChild(document.createElement('div')).style.display = 'none';
     UNITS.forEach(u => document.getElementById('unitsGrid').appendChild(createUnitButton(u)));
