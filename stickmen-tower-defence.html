@@ -80,6 +80,15 @@
       gap: 2px;
       line-height: 1;
       box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+      overflow: hidden;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%) !important;
+    }
+
+    .unit-icon svg {
+      width: 100%;
+      height: 100%;
+      padding: 8px;
+      box-sizing: border-box;
     }
 
     .unit-icon span {
@@ -389,6 +398,239 @@
       updateWeaponUpgradeButton();
     }
 
+    function drawUnitSVG(type) {
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', '0 0 80 80');
+      svg.setAttribute('width', '100%');
+      svg.setAttribute('height', '100%');
+      svg.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
+
+      const headY = 20, neckY = 28, hipY = 44, footY = 56;
+      const armSwing = 6, legSwing = 4;
+
+      // Head
+      const head = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      head.setAttribute('cx', '40');
+      head.setAttribute('cy', headY);
+      head.setAttribute('r', '8');
+      head.setAttribute('fill', type.color);
+      head.setAttribute('stroke', '#082032');
+      head.setAttribute('stroke-width', '1.5');
+      svg.appendChild(head);
+
+      // Body
+      const body = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      body.setAttribute('x1', '40');
+      body.setAttribute('y1', neckY);
+      body.setAttribute('x2', '40');
+      body.setAttribute('y2', hipY);
+      body.setAttribute('stroke', type.color);
+      body.setAttribute('stroke-width', '2');
+      svg.appendChild(body);
+
+      // Arms
+      const armL = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      armL.setAttribute('x1', '40');
+      armL.setAttribute('y1', '32');
+      armL.setAttribute('x2', 40 - armSwing);
+      armL.setAttribute('y2', '42');
+      armL.setAttribute('stroke', type.color);
+      armL.setAttribute('stroke-width', '1.5');
+      svg.appendChild(armL);
+
+      const armR = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      armR.setAttribute('x1', '40');
+      armR.setAttribute('y1', '32');
+      armR.setAttribute('x2', 40 + armSwing);
+      armR.setAttribute('y2', '42');
+      armR.setAttribute('stroke', type.color);
+      armR.setAttribute('stroke-width', '1.5');
+      svg.appendChild(armR);
+
+      // Legs
+      const legL = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      legL.setAttribute('x1', '40');
+      legL.setAttribute('y1', hipY);
+      legL.setAttribute('x2', 40 - legSwing);
+      legL.setAttribute('y2', footY);
+      legL.setAttribute('stroke', type.color);
+      legL.setAttribute('stroke-width', '1.5');
+      svg.appendChild(legL);
+
+      const legR = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      legR.setAttribute('x1', '40');
+      legR.setAttribute('y1', hipY);
+      legR.setAttribute('x2', 40 + legSwing);
+      legR.setAttribute('y2', footY);
+      legR.setAttribute('stroke', type.color);
+      legR.setAttribute('stroke-width', '1.5');
+      svg.appendChild(legR);
+
+      // Weapon
+      switch (type.id) {
+        case 1: // Wizard - staff with orb
+          {
+            const staff = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            staff.setAttribute('x1', '48');
+            staff.setAttribute('y1', '42');
+            staff.setAttribute('x2', '62');
+            staff.setAttribute('y2', '28');
+            staff.setAttribute('stroke', '#fbbf24');
+            staff.setAttribute('stroke-width', '2');
+            svg.appendChild(staff);
+
+            const orb = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            orb.setAttribute('cx', '64');
+            orb.setAttribute('cy', '26');
+            orb.setAttribute('r', '4');
+            orb.setAttribute('fill', '#a78bfa');
+            orb.setAttribute('stroke', '#fbbf24');
+            orb.setAttribute('stroke-width', '1');
+            svg.appendChild(orb);
+          }
+          break;
+        case 2: // Sniper - rifle
+          {
+            const rifle = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            rifle.setAttribute('x1', '48');
+            rifle.setAttribute('y1', '42');
+            rifle.setAttribute('x2', '68');
+            rifle.setAttribute('y2', '32');
+            rifle.setAttribute('stroke', '#64748b');
+            rifle.setAttribute('stroke-width', '3');
+            svg.appendChild(rifle);
+
+            const scope = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            scope.setAttribute('cx', '58');
+            scope.setAttribute('cy', '35');
+            scope.setAttribute('r', '3');
+            scope.setAttribute('fill', 'none');
+            scope.setAttribute('stroke', '#94a3b8');
+            scope.setAttribute('stroke-width', '1');
+            svg.appendChild(scope);
+          }
+          break;
+        case 3: // Machinegunner - gun
+          {
+            const gun = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            gun.setAttribute('x', '48');
+            gun.setAttribute('y', '38');
+            gun.setAttribute('width', '16');
+            gun.setAttribute('height', '5');
+            gun.setAttribute('fill', '#64748b');
+            gun.setAttribute('stroke', '#475569');
+            gun.setAttribute('stroke-width', '1');
+            svg.appendChild(gun);
+          }
+          break;
+        case 4: // Puncher - gloves
+          {
+            const glove1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            glove1.setAttribute('cx', '32');
+            glove1.setAttribute('cy', '36');
+            glove1.setAttribute('r', '4');
+            glove1.setAttribute('fill', '#dc2626');
+            glove1.setAttribute('stroke', '#991b1b');
+            glove1.setAttribute('stroke-width', '1');
+            svg.appendChild(glove1);
+
+            const glove2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            glove2.setAttribute('cx', '48');
+            glove2.setAttribute('cy', '36');
+            glove2.setAttribute('r', '4');
+            glove2.setAttribute('fill', '#dc2626');
+            glove2.setAttribute('stroke', '#991b1b');
+            glove2.setAttribute('stroke-width', '1');
+            svg.appendChild(glove2);
+          }
+          break;
+        case 5: // Ninja - blade
+          {
+            const blade = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            blade.setAttribute('x1', '48');
+            blade.setAttribute('y1', '42');
+            blade.setAttribute('x2', '62');
+            blade.setAttribute('y2', '28');
+            blade.setAttribute('stroke', '#1f2937');
+            blade.setAttribute('stroke-width', '2.5');
+            svg.appendChild(blade);
+          }
+          break;
+        case 6: // Swordsman - sword
+          {
+            const sword = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            sword.setAttribute('x1', '48');
+            sword.setAttribute('y1', '42');
+            sword.setAttribute('x2', '64');
+            sword.setAttribute('y2', '26');
+            sword.setAttribute('stroke', '#f59e0b');
+            sword.setAttribute('stroke-width', '3');
+            svg.appendChild(sword);
+
+            const guard = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            guard.setAttribute('cx', '48');
+            guard.setAttribute('cy', '42');
+            guard.setAttribute('r', '3');
+            guard.setAttribute('fill', '#b45309');
+            svg.appendChild(guard);
+          }
+          break;
+        case 7: // Archer - bow
+          {
+            const bowStave = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            bowStave.setAttribute('x1', '48');
+            bowStave.setAttribute('y1', '30');
+            bowStave.setAttribute('x2', '48');
+            bowStave.setAttribute('y2', '52');
+            bowStave.setAttribute('stroke', '#92400e');
+            bowStave.setAttribute('stroke-width', '2');
+            svg.appendChild(bowStave);
+
+            const bowString = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            bowString.setAttribute('d', 'M 52 32 Q 58 42 52 50');
+            bowString.setAttribute('fill', 'none');
+            bowString.setAttribute('stroke', '#f5deb3');
+            bowString.setAttribute('stroke-width', '1.5');
+            svg.appendChild(bowString);
+
+            const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            arrow.setAttribute('x1', '52');
+            arrow.setAttribute('y1', '42');
+            arrow.setAttribute('x2', '65');
+            arrow.setAttribute('y2', '42');
+            arrow.setAttribute('stroke', '#22c55e');
+            arrow.setAttribute('stroke-width', '1.5');
+            svg.appendChild(arrow);
+          }
+          break;
+        case 8: // Lightsaber
+          {
+            const saber = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            saber.setAttribute('x1', '48');
+            saber.setAttribute('y1', '42');
+            saber.setAttribute('x2', '62');
+            saber.setAttribute('y2', '26');
+            saber.setAttribute('stroke', '#38bdf8');
+            saber.setAttribute('stroke-width', '4');
+            saber.setAttribute('stroke-linecap', 'round');
+            svg.appendChild(saber);
+
+            const glow = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            glow.setAttribute('x1', '48');
+            glow.setAttribute('y1', '42');
+            glow.setAttribute('x2', '62');
+            glow.setAttribute('y2', '26');
+            glow.setAttribute('stroke', '#8ecae6');
+            glow.setAttribute('stroke-width', '2');
+            glow.setAttribute('opacity', '0.6');
+            svg.appendChild(glow);
+          }
+          break;
+      }
+
+      return svg;
+    }
+
     function createUnitCard(type) {
       const card = document.createElement('div');
       card.className = 'unit-card';
@@ -397,8 +639,9 @@
 
       const icon = document.createElement('div');
       icon.className = 'unit-icon';
-      icon.style.background = type.color;
-      icon.innerHTML = `<span class="unit-icon-weapon">${type.icon}</span><span class="unit-icon-face">${type.face}</span>`;
+      icon.style.background = 'rgba(255, 255, 255, 0.08)';
+      icon.style.border = '1px solid rgba(255, 255, 255, 0.14)';
+      icon.appendChild(drawUnitSVG(type));
 
       const details = document.createElement('div');
       details.className = 'unit-details';
@@ -635,87 +878,136 @@
       const handY = y + 10 * scale + bob;
       const endX = handX + (16 + weaponExtend) * direction;
       const endY = handY - 4 * scale;
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2 * scale;
 
       switch (unit.weaponType) {
-        case 1: // Wizard staff
+        case 1: // Wizard staff - yellow staff with purple orb
+          ctx.strokeStyle = '#fbbf24';
+          ctx.lineWidth = 2.5 * scale;
           ctx.beginPath();
           ctx.moveTo(handX, handY);
           ctx.lineTo(endX, endY);
           ctx.stroke();
+          ctx.fillStyle = '#a78bfa';
           ctx.beginPath();
-          ctx.arc(endX, endY, 4 * scale, 0, Math.PI * 2);
-          ctx.stroke();
-          break;
-        case 2: // Sniper
-          ctx.beginPath();
-          ctx.moveTo(handX, handY);
-          ctx.lineTo(endX, endY);
-          ctx.stroke();
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(endX - 4 * scale, endY - 2 * scale, 8 * scale, 4 * scale);
-          break;
-        case 3: // Machinegunner
-          ctx.beginPath();
-          ctx.moveTo(handX, handY);
-          ctx.lineTo(endX, endY);
-          ctx.stroke();
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(handX + direction * 2 * scale, handY - 3 * scale, 14 * scale * direction, 6 * scale);
-          break;
-        case 4: // Puncher (glove)
-          ctx.beginPath();
-          ctx.moveTo(handX, handY);
-          ctx.lineTo(handX + direction * 6 * scale, handY - 6 * scale);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.arc(handX + direction * 6 * scale, handY - 6 * scale, 5 * scale, 0, Math.PI * 2);
-          ctx.stroke();
-          break;
-        case 5: // Ninja blade
-          ctx.beginPath();
-          ctx.moveTo(handX, handY);
-          ctx.lineTo(endX, endY);
-          ctx.stroke();
-          break;
-        case 6: // Swordsman
-          ctx.beginPath();
-          ctx.moveTo(handX, handY);
-          ctx.lineTo(endX, endY);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.rect(endX - direction * 2 * scale, endY - 2 * scale, 4 * scale, 6 * scale);
-          ctx.fillStyle = '#ffffff';
+          ctx.arc(endX, endY, 5 * scale, 0, Math.PI * 2);
           ctx.fill();
+          ctx.strokeStyle = '#fbbf24';
+          ctx.lineWidth = 1 * scale;
+          ctx.stroke();
           break;
-        case 7: // Archer
+
+        case 2: // Sniper rifle - gray with scope
+          ctx.strokeStyle = '#64748b';
+          ctx.lineWidth = 3.5 * scale;
           ctx.beginPath();
           ctx.moveTo(handX, handY);
           ctx.lineTo(endX, endY);
           ctx.stroke();
+          ctx.strokeStyle = '#94a3b8';
+          ctx.lineWidth = 1.5 * scale;
           ctx.beginPath();
-          ctx.moveTo(handX, handY - 8 * scale);
-          ctx.quadraticCurveTo(handX + direction * 6 * scale, handY, handX, handY + 8 * scale);
+          ctx.arc((handX + endX) / 2, (handY + endY) / 2, 4 * scale, 0, Math.PI * 2);
           ctx.stroke();
+          break;
+
+        case 3: // Machinegunner - gray rectangular gun
+          ctx.fillStyle = '#64748b';
+          ctx.fillRect(handX + direction * 2 * scale, handY - 4 * scale, 18 * scale * direction, 8 * scale);
+          ctx.strokeStyle = '#475569';
+          ctx.lineWidth = 1 * scale;
+          ctx.strokeRect(handX + direction * 2 * scale, handY - 4 * scale, 18 * scale * direction, 8 * scale);
+          break;
+
+        case 4: // Puncher - red gloves
+          ctx.fillStyle = '#dc2626';
           ctx.beginPath();
-          ctx.moveTo(endX, endY);
+          ctx.arc(handX - direction * 8 * scale, handY - 8 * scale, 6 * scale, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#991b1b';
+          ctx.lineWidth = 1.5 * scale;
+          ctx.stroke();
+          ctx.fillStyle = '#dc2626';
+          ctx.beginPath();
+          ctx.arc(handX + direction * 8 * scale, handY - 8 * scale, 6 * scale, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#991b1b';
+          ctx.lineWidth = 1.5 * scale;
+          ctx.stroke();
+          break;
+
+        case 5: // Ninja blade - dark black blade
+          ctx.strokeStyle = '#1f2937';
+          ctx.lineWidth = 3.5 * scale;
+          ctx.beginPath();
+          ctx.moveTo(handX, handY);
+          ctx.lineTo(endX, endY);
+          ctx.stroke();
+          ctx.strokeStyle = '#0f172a';
+          ctx.lineWidth = 1 * scale;
+          ctx.beginPath();
+          ctx.moveTo(handX, handY);
+          ctx.lineTo(endX, endY);
+          ctx.stroke();
+          break;
+
+        case 6: // Swordsman - gold sword with brown guard
+          ctx.strokeStyle = '#f59e0b';
+          ctx.lineWidth = 3.5 * scale;
+          ctx.beginPath();
+          ctx.moveTo(handX, handY);
+          ctx.lineTo(endX, endY);
+          ctx.stroke();
+          ctx.fillStyle = '#b45309';
+          ctx.beginPath();
+          ctx.arc(handX, handY, 4 * scale, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#92400e';
+          ctx.lineWidth = 1.5 * scale;
+          ctx.stroke();
+          break;
+
+        case 7: // Archer - brown bow with green arrow
+          ctx.strokeStyle = '#92400e';
+          ctx.lineWidth = 2.5 * scale;
+          ctx.beginPath();
+          ctx.moveTo(handX, handY - 10 * scale);
+          ctx.quadraticCurveTo(handX + direction * 8 * scale, handY, handX, handY + 10 * scale);
+          ctx.stroke();
+          ctx.strokeStyle = '#f5deb3';
+          ctx.lineWidth = 1.5 * scale;
+          ctx.beginPath();
+          ctx.moveTo(handX - direction * 2 * scale, handY);
+          ctx.lineTo(handX + direction * 8 * scale, handY);
+          ctx.stroke();
+          ctx.strokeStyle = '#22c55e';
+          ctx.lineWidth = 2 * scale;
+          ctx.beginPath();
+          ctx.moveTo(handX + direction * 8 * scale, handY - 1 * scale);
           ctx.lineTo(endX + direction * 6 * scale, endY);
           ctx.stroke();
           break;
-        case 8: // Lightsaber
+
+        case 8: // Lightsaber - glowing blue blade
+          ctx.shadowColor = '#38bdf8';
+          ctx.shadowBlur = 15;
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 5 * scale;
           ctx.beginPath();
           ctx.moveTo(handX, handY);
           ctx.lineTo(endX, endY);
           ctx.stroke();
+          ctx.shadowBlur = 0;
           ctx.strokeStyle = '#8ecae6';
-          ctx.lineWidth = 3 * scale;
+          ctx.lineWidth = 2 * scale;
           ctx.beginPath();
           ctx.moveTo(handX, handY);
           ctx.lineTo(endX, endY);
           ctx.stroke();
           break;
+
         default:
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2 * scale;
           ctx.beginPath();
           ctx.moveTo(handX, handY);
           ctx.lineTo(endX, endY);
