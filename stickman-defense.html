@@ -59,7 +59,7 @@
       display: grid;
       grid-template-columns: 50px 1fr;
       gap: 12px;
-      align-items: center;
+      align-items: flex-start;
       padding: 12px;
       border-radius: 12px;
       border: 1px solid rgba(148, 163, 184, 0.2);
@@ -67,6 +67,7 @@
       cursor: grab;
       user-select: none;
       transition: all 0.2s ease;
+      text-align: left;
     }
 
     .unit-btn:hover {
@@ -96,16 +97,24 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
 
+    .unit-info {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
     .unit-info h3 {
       font-size: 0.95rem;
       color: #f1f5f9;
-      margin-bottom: 4px;
+      margin: 0;
+      font-weight: 600;
     }
 
     .unit-info p {
       font-size: 0.8rem;
       color: #94a3b8;
-      margin: 2px 0;
+      margin: 0;
+      line-height: 1.2;
     }
 
     .upgrade-section {
@@ -238,11 +247,11 @@
         </div>
         <div class="stat-card">
           <div class="stat-label">Your Gold</div>
-          <div class="stat-value" id="moneyDisplay">200</div>
+          <div class="stat-value" id="moneyDisplay">500</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Enemy Gold</div>
-          <div class="stat-value" id="enemyMoneyDisplay">180</div>
+          <div class="stat-value" id="enemyMoneyDisplay">450</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Status</div>
@@ -327,35 +336,35 @@
     }
 
     const UNITS = [
-      { id: 1, name: 'Wizard', icon: '🧙', face: '😄', cost: 380, range: 180, fireRate: 600, damage: 28, health: 110, color: '#a855f7' },
-      { id: 2, name: 'Sniper', icon: '🎯', face: '😎', cost: 420, range: 280, fireRate: 720, damage: 260, health: 80, color: '#0ea5e9' },
-      { id: 3, name: 'Gunner', icon: '💥', face: '😠', cost: 360, range: 100, fireRate: 20, damage: 8, health: 120, color: '#f97316' },
-      { id: 4, name: 'Boxer', icon: '🥊', face: '😤', cost: 350, range: 80, fireRate: 550, damage: 45, health: 140, color: '#ef4444' },
-      { id: 5, name: 'Ninja', icon: '🥷', face: '😶', cost: 390, range: 140, fireRate: 520, damage: 20, health: 95, color: '#1e293b' },
-      { id: 6, name: 'Knight', icon: '⚔️', face: '😐', cost: 370, range: 130, fireRate: 580, damage: 24, health: 130, color: '#c084fc' },
-      { id: 7, name: 'Archer', icon: '🏹', face: '🙂', cost: 340, range: 220, fireRate: 600, damage: 20, health: 90, color: '#10b981' },
-      { id: 8, name: 'Sith', icon: '🔴', face: '😈', cost: 440, range: 160, fireRate: 580, damage: 32, health: 100, color: '#8b5cf6' },
+      { id: 1, name: 'Wizard', icon: '🧙', cost: 340, range: 200, fireRate: 700, damage: 32, health: 90, spawnCooldown: 600, color: '#a855f7' },
+      { id: 2, name: 'Sniper', icon: '🎯', cost: 380, range: 280, fireRate: 800, damage: 70, health: 70, spawnCooldown: 800, color: '#0ea5e9' },
+      { id: 3, name: 'Gunner', icon: '💥', cost: 300, range: 120, fireRate: 100, damage: 6, health: 100, spawnCooldown: 300, color: '#f97316' },
+      { id: 4, name: 'Boxer', icon: '🥊', cost: 350, range: 80, fireRate: 480, damage: 38, health: 140, spawnCooldown: 700, color: '#ef4444' },
+      { id: 5, name: 'Ninja', icon: '🥷', cost: 360, range: 150, fireRate: 450, damage: 25, health: 80, spawnCooldown: 500, color: '#1e293b' },
+      { id: 6, name: 'Knight', icon: '⚔️', cost: 370, range: 120, fireRate: 550, damage: 28, health: 150, spawnCooldown: 750, color: '#c084fc' },
+      { id: 7, name: 'Archer', icon: '🏹', cost: 330, range: 240, fireRate: 650, damage: 22, health: 80, spawnCooldown: 550, color: '#10b981' },
+      { id: 8, name: 'Sith', icon: '🔴', cost: 400, range: 160, fireRate: 500, damage: 48, health: 100, spawnCooldown: 850, color: '#8b5cf6' },
     ];
 
     const state = {
       units: [],
       enemies: [],
       towers: [
-        { x: 100, y: 180, range: 240, fireRate: 80, cooldown: 0, health: 1000, maxHealth: 1000, team: 'player', type: 'tower' },
-        { x: 100, y: 495, range: 240, fireRate: 80, cooldown: 0, health: 1000, maxHealth: 1000, team: 'player', type: 'tower' },
-        { x: 280, y: 337, range: 240, fireRate: 70, cooldown: 0, health: 3000, maxHealth: 3000, team: 'player', type: 'core' },
-        { x: WIDTH - 100, y: 180, range: 240, fireRate: 80, cooldown: 0, health: 1000, maxHealth: 1000, team: 'enemy', type: 'tower' },
-        { x: WIDTH - 100, y: 495, range: 240, fireRate: 80, cooldown: 0, health: 1000, maxHealth: 1000, team: 'enemy', type: 'tower' },
-        { x: WIDTH - 280, y: 337, range: 240, fireRate: 70, cooldown: 0, health: 3000, maxHealth: 3000, team: 'enemy', type: 'core' },
+        { x: 100, y: 180, range: 240, fireRate: 80, cooldown: 0, health: 1200, maxHealth: 1200, team: 'player', type: 'tower' },
+        { x: 100, y: 495, range: 240, fireRate: 80, cooldown: 0, health: 1200, maxHealth: 1200, team: 'player', type: 'tower' },
+        { x: 280, y: 337, range: 240, fireRate: 70, cooldown: 0, health: 4000, maxHealth: 4000, team: 'player', type: 'core' },
+        { x: WIDTH - 100, y: 180, range: 240, fireRate: 80, cooldown: 0, health: 1200, maxHealth: 1200, team: 'enemy', type: 'tower' },
+        { x: WIDTH - 100, y: 495, range: 240, fireRate: 80, cooldown: 0, health: 1200, maxHealth: 1200, team: 'enemy', type: 'tower' },
+        { x: WIDTH - 280, y: 337, range: 240, fireRate: 70, cooldown: 0, health: 4000, maxHealth: 4000, team: 'enemy', type: 'core' },
       ],
       bullets: [],
-      money: 200,
-      moneyFloat: 200,
-      enemyMoney: 180,
-      enemyMoneyFloat: 180,
+      money: 500,
+      moneyFloat: 500,
+      enemyMoney: 450,
+      enemyMoneyFloat: 450,
       wave: 1,
-      enemyUnitsLeft: 8,
-      enemyDeployTimer: 1200,
+      enemyUnitsLeft: 6,
+      enemyDeployTimer: 1500,
       upgradeLevel: 0,
       upgradeCost: 150,
       gameOver: false,
@@ -406,12 +415,17 @@
       icon.style.backgroundColor = unit.color;
       icon.innerHTML = unit.icon;
 
+      const atkSpeed = (1000 / unit.fireRate).toFixed(1);
+      const dps = (unit.damage * 1000 / unit.fireRate).toFixed(1);
+
       const info = document.createElement('div');
       info.className = 'unit-info';
       info.innerHTML = `
         <h3>${unit.name}</h3>
-        <p>💰 ${unit.cost}</p>
-        <p class="cooldown" style="display: none;">⏱ Ready</p>
+        <p>💰 ${unit.cost} | 💚 ${unit.health}x10</p>
+        <p style="font-size: 0.75rem; color: #64748b;">🎯 ${unit.damage} dmg | ${atkSpeed}/s | ${unit.range}rng</p>
+        <p style="font-size: 0.75rem; color: #8ecae6;">⚡ ${dps} DPS</p>
+        <p class="cooldown" style="display: none; color: #fbbf24;">⏱ Ready</p>
       `;
 
       btn.appendChild(icon);
@@ -448,7 +462,7 @@
       });
       state.money -= unit.cost;
       state.moneyFloat -= unit.cost;
-      state.spawnCooldowns[unit.id] = unit.fireRate;
+      state.spawnCooldowns[unit.id] = unit.spawnCooldown;
       state.status = `${unit.name} deployed!`;
       sfx('deploy');
     }
@@ -868,27 +882,28 @@
     canvas.addEventListener('click', () => {
       if (state.gameOver) {
         state.wave = 1;
-        state.money = 200;
-        state.moneyFloat = 200;
-        state.enemyMoney = 180;
-        state.enemyMoneyFloat = 180;
+        state.money = 500;
+        state.moneyFloat = 500;
+        state.enemyMoney = 450;
+        state.enemyMoneyFloat = 450;
         state.units = [];
         state.enemies = [];
         state.bullets = [];
-        state.enemyUnitsLeft = 8;
+        state.enemyUnitsLeft = 6;
         state.upgradeLevel = 0;
         state.upgradeCost = 150;
         state.spawnCooldowns = {};
         state.towers = [
-          { x: 100, y: 180, range: 240, fireRate: 80, cooldown: 0, health: 1000, maxHealth: 1000, team: 'player', type: 'tower' },
-          { x: 100, y: 495, range: 240, fireRate: 80, cooldown: 0, health: 1000, maxHealth: 1000, team: 'player', type: 'tower' },
-          { x: 280, y: 337, range: 240, fireRate: 70, cooldown: 0, health: 3000, maxHealth: 3000, team: 'player', type: 'core' },
-          { x: WIDTH - 100, y: 180, range: 240, fireRate: 80, cooldown: 0, health: 1000, maxHealth: 1000, team: 'enemy', type: 'tower' },
-          { x: WIDTH - 100, y: 495, range: 240, fireRate: 80, cooldown: 0, health: 1000, maxHealth: 1000, team: 'enemy', type: 'tower' },
-          { x: WIDTH - 280, y: 337, range: 240, fireRate: 70, cooldown: 0, health: 3000, maxHealth: 3000, team: 'enemy', type: 'core' },
+          { x: 100, y: 180, range: 240, fireRate: 80, cooldown: 0, health: 1200, maxHealth: 1200, team: 'player', type: 'tower' },
+          { x: 100, y: 495, range: 240, fireRate: 80, cooldown: 0, health: 1200, maxHealth: 1200, team: 'player', type: 'tower' },
+          { x: 280, y: 337, range: 240, fireRate: 70, cooldown: 0, health: 4000, maxHealth: 4000, team: 'player', type: 'core' },
+          { x: WIDTH - 100, y: 180, range: 240, fireRate: 80, cooldown: 0, health: 1200, maxHealth: 1200, team: 'enemy', type: 'tower' },
+          { x: WIDTH - 100, y: 495, range: 240, fireRate: 80, cooldown: 0, health: 1200, maxHealth: 1200, team: 'enemy', type: 'tower' },
+          { x: WIDTH - 280, y: 337, range: 240, fireRate: 70, cooldown: 0, health: 4000, maxHealth: 4000, team: 'enemy', type: 'core' },
         ];
         state.gameOver = false;
         state.status = 'Ready';
+        state.enemyDeployTimer = 1500;
         updateUI();
       }
     });
