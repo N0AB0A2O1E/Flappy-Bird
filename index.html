@@ -92,6 +92,37 @@
         }
       }
 
+      .nav-menu {
+        position: relative;
+        z-index: 2;
+        margin-top: 3rem;
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        max-width: 90%;
+      }
+
+      .nav-link {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        text-decoration: none;
+        color: white;
+        background: rgba(30, 136, 229, 0.7);
+        border: 2px solid rgba(135, 206, 250, 0.5);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 0 12px rgba(135, 206, 250, 0.3);
+      }
+
+      .nav-link:hover {
+        background: rgba(30, 136, 229, 1);
+        border-color: rgba(135, 206, 250, 1);
+        box-shadow: 0 0 20px rgba(135, 206, 250, 0.6);
+        transform: translateY(-2px);
+      }
+
     </style>
   </head>
   <body>
@@ -110,6 +141,11 @@
       <div class="particle"></div>
       <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
         <h1 id="greeting" class="greeting">Hi</h1>
+        <nav class="nav-menu">
+          <a href="flappy-bird.html" class="nav-link">Flappy Bird</a>
+          <a href="stickman-defense.html" class="nav-link">Stickman Defense</a>
+          <a href="stickmen-tower-defence.html" class="nav-link">Tower Defence</a>
+        </nav>
       </div>
     </div>
 
