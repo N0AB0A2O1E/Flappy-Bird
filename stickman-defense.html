@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stickman Defense</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+    }
+
+    .game-container {
+      width: 100%;
+      max-width: 1400px;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 24px;
+    }
+
+    .sidebar {
+      background: rgba(30, 41, 59, 0.8);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      height: fit-content;
+    }
+
+    .sidebar h1 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      letter-spacing: -0.02em;
+      margin: 0;
+    }
+
+    .units-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+
+    .unit-btn {
+      display: grid;
+      grid-template-columns: 40px 1fr;
+      gap: 8px;
+      align-items: flex-start;
+      padding: 8px;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(51, 65, 85, 0.5);
+      cursor: grab;
+      user-select: none;
+      transition: all 0.2s ease;
+      text-align: left;
+    }
+
+    .unit-btn:hover {
+      background: rgba(71, 85, 105, 0.7);
+      border-color: rgba(148, 163, 184, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .unit-btn:active {
+      cursor: grabbing;
+      transform: scale(0.98);
+    }
+
+    .unit-btn.unavailable {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .unit-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      line-height: 1;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .unit-info {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .unit-info h3 {
+      font-size: 0.85rem;
+      color: #f1f5f9;
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .unit-info p {
+      font-size: 0.7rem;
+      color: #94a3b8;
+      margin: 0;
+      line-height: 1;
+    }
+
+    .upgrade-section {
+      border-top: 1px solid rgba(148, 163, 184, 0.2);
+      padding-top: 8px;
+      margin-top: 4px;
+    }
+
+    .upgrade-btn {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(139, 92, 246, 0.2));
+      color: #f1f5f9;
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .upgrade-btn:hover:not(:disabled) {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.5), rgba(139, 92, 246, 0.3));
+      border-color: rgba(148, 163, 184, 0.4);
+    }
+
+    .upgrade-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .main-content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+    }
+
+    .stat-card {
+      background: rgba(51, 65, 85, 0.5);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .stat-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #f1f5f9;
+    }
+
+    canvas {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border: 2px solid rgba(148, 163, 184, 0.3);
+      border-radius: 16px;
+      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    }
+
+    .message-box {
+      background: rgba(51, 65, 85, 0.5);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 0.95rem;
+      color: #cbd5e1;
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+    }
+
+    #dragPreview {
+      position: fixed;
+      z-index: 9999;
+      pointer-events: none;
+      display: none;
+      padding: 12px 16px;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.95);
+      color: #f1f5f9;
+      font-weight: 600;
+      font-size: 0.9rem;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+    }
+
+    .menu-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .menu-content {
+      max-width: 600px;
+      padding: 40px;
+      text-align: center;
+      background: rgba(30, 41, 59, 0.8);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 20px;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+    }
+
+    .menu-content h1 {
+      font-size: 3rem;
+      margin: 0 0 10px 0;
+      color: #f1f5f9;
+      text-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+    }
+
+    .tagline {
+      color: #94a3b8;
+      font-size: 1.2rem;
+      margin: 0 0 30px 0;
+    }
+
+    .instructions {
+      text-align: left;
+      background: rgba(51, 65, 85, 0.4);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+
+    .instructions h2 {
+      margin: 0 0 15px 0;
+      color: #f1f5f9;
+      font-size: 1.2rem;
+    }
+
+    .instructions ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .instructions li {
+      color: #cbd5e1;
+      margin: 8px 0;
+      padding-left: 25px;
+      position: relative;
+      font-size: 0.95rem;
+    }
+
+    .instructions li:before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: #3b82f6;
+      font-weight: bold;
+    }
+
+    .tips {
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+
+    .tips h3 {
+      margin: 0 0 12px 0;
+      color: #38bdf8;
+      font-size: 1.1rem;
+    }
+
+    .tips p {
+      margin: 8px 0;
+      color: #cbd5e1;
+      font-size: 0.9rem;
+    }
+
+    .play-btn {
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      color: #f1f5f9;
+      border: none;
+      padding: 16px 60px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin: 20px 0;
+      box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+    }
+
+    .play-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 40px rgba(59, 130, 246, 0.5);
+    }
+
+    .play-btn:active {
+      transform: translateY(0);
+    }
+
+    .footer {
+      margin: 20px 0 0 0;
+      color: #64748b;
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 1024px) {
+      .game-container {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        height: auto;
+      }
+
+      .menu-content {
+        padding: 30px;
+      }
+
+      .menu-content h1 {
+        font-size: 2.2rem;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .menu-content {
+        padding: 20px;
+        margin: 20px;
+      }
+
+      .menu-content h1 {
+        font-size: 1.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="menuScreen" class="menu-screen">
+    <div class="menu-content">
+      <h1>⚔️ Stickman Defense</h1>
+      <p class="tagline">Strategic Tower Defense Battle</p>
+
+      <div class="instructions">
+        <h2>How to Play</h2>
+        <ul>
+          <li><strong>Drag units</strong> from the sidebar to deploy on the left side</li>
+          <li><strong>Manage gold</strong> wisely - earn 55 gold/second</li>
+          <li><strong>Upgrade weapons</strong> to boost unit damage</li>
+          <li><strong>Defend your core</strong> tower from enemy waves</li>
+          <li><strong>Attack enemy towers</strong> to push back and win</li>
+        </ul>
+      </div>
+
+      <div class="tips">
+        <h3>💡 Tips</h3>
+        <p>Mix ranged and melee units for balance</p>
+        <p>Upgrade weapons between waves for better damage</p>
+        <p>Watch your gold - don't overspend early</p>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin: 20px 0;">
+        <button id="playBtn" class="play-btn" style="flex: 1;">Start Game</button>
+        <button id="loadBtn" class="play-btn" style="flex: 1; display: none;">Continue Game</button>
+      </div>
+
+      <p class="footer">Made with strategy & stickmen</p>
+      <p style="color: #64748b; font-size: 0.75rem; margin: 5px 0 0 0;">Version 1.0</p>
+    </div>
+  </div>
+
+  <div class="game-container" id="gameContainer" style="display: none;">
+    <div class="sidebar">
+      <h1>⚔️ Units</h1>
+      <div class="units-grid" id="unitsGrid"></div>
+      <div class="upgrade-section">
+        <button id="upgradeBtn" class="upgrade-btn">⚡ Upgrade Weapons - <span id="upgradeCost">$150</span></button>
+        <button id="upgradeTowerBtn" class="upgrade-btn">🏰 Upgrade Towers - <span id="upgradeTowerCost">$200</span></button>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <div class="stats-bar">
+        <div class="stat-card">
+          <div class="stat-label">Wave</div>
+          <div class="stat-value" id="waveDisplay">1</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Your Gold</div>
+          <div class="stat-value" id="moneyDisplay">400</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Enemy Gold</div>
+          <div class="stat-value" id="enemyMoneyDisplay">400</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Kills</div>
+          <div class="stat-value" id="killsDisplay" style="font-size: 1.5rem;">0</div>
+        </div>
+      </div>
+
+      <canvas id="gameCanvas" width="1200" height="675"></canvas>
+
+      <div class="message-box" id="messageBox">
+        Drag units or press 1-8 to deploy them on the left side!
+      </div>
+    </div>
+  </div>
+
+  <div id="dragPreview"></div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const WIDTH = canvas.width;
+    const HEIGHT = canvas.height;
+    const PLAYER_DEPLOY_WIDTH = 200;
+    const ENEMY_DEPLOY_START = WIDTH - 200;
+    const GAME_SPEED = 1;
+
+    // Soft audio context with pleasant sounds
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playSound(notes = [], duration = 0.12) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const now = audioCtx.currentTime;
+      notes.forEach((note) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = note.type || 'sine';
+        osc.frequency.value = note.freq;
+        gain.gain.setValueAtTime(note.vol || 0.04, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + duration);
+      });
+    }
+
+    function sfx(name) {
+      switch (name) {
+        case 'deploy':
+          playSound([
+            { freq: 523, vol: 0.05, type: 'sine' },
+            { freq: 659, vol: 0.03, type: 'sine' }
+          ], 0.08);
+          break;
+        case 'hit':
+          playSound([{ freq: 350, vol: 0.03, type: 'sine' }], 0.04);
+          break;
+        case 'enemyDeploy':
+          playSound([
+            { freq: 392, vol: 0.04, type: 'sine' },
+            { freq: 523, vol: 0.03, type: 'sine' }
+          ], 0.07);
+          break;
+        case 'shoot':
+          // Muted shoot sound
+          playSound([{ freq: 600, vol: 0.02, type: 'sine' }], 0.03);
+          break;
+        case 'upgrade':
+          playSound([
+            { freq: 523, vol: 0.04 },
+            { freq: 659, vol: 0.04 },
+            { freq: 784, vol: 0.04 }
+          ], 0.1);
+          break;
+        case 'gameover':
+          playSound([
+            { freq: 349, vol: 0.05 },
+            { freq: 261, vol: 0.04 },
+            { freq: 195, vol: 0.03 }
+          ], 0.2);
+          break;
+      }
+    }
+
+    const UNITS = [
+      { id: 1, name: 'Wizard', icon: '🧙', cost: 340, range: 200, fireRate: 700, damage: 32, health: 90, spawnCooldown: 600, color: '#a855f7' },
+      { id: 2, name: 'Sniper', icon: '🎯', cost: 450, range: 280, fireRate: 800, damage: 70, health: 70, spawnCooldown: 800, color: '#0ea5e9' },
+      { id: 3, name: 'Gunner', icon: '💥', cost: 300, range: 120, fireRate: 100, damage: 6, health: 100, spawnCooldown: 300, color: '#f97316' },
+      { id: 4, name: 'Boxer', icon: '🥊', cost: 420, range: 80, fireRate: 480, damage: 38, health: 140, spawnCooldown: 700, color: '#ef4444' },
+      { id: 5, name: 'Ninja', icon: '🥷', cost: 360, range: 150, fireRate: 450, damage: 25, health: 80, spawnCooldown: 500, color: '#1e293b' },
+      { id: 6, name: 'Knight', icon: '⚔️', cost: 370, range: 120, fireRate: 550, damage: 28, health: 150, spawnCooldown: 750, color: '#c084fc' },
+      { id: 7, name: 'Archer', icon: '🏹', cost: 310, range: 240, fireRate: 650, damage: 22, health: 80, spawnCooldown: 550, color: '#10b981' },
+      { id: 8, name: 'Sith', icon: '🔴', cost: 400, range: 160, fireRate: 500, damage: 48, health: 100, spawnCooldown: 850, color: '#8b5cf6' },
+    ];
+
+    let gamePaused = true; // Game starts paused in menu
+
+    const state = {
+      units: [],
+      enemies: [],
+      particles: [],
+      floatingNumbers: [],
+      screenShake: 0,
+      playerKills: 0,
+      towers: [
+        { x: 100, y: 180, range: 240, fireRate: 80, cooldown: 0, health: 1200, maxHealth: 1200, team: 'player', type: 'tower' },
+        { x: 100, y: 495, range: 240, fireRate: 80, cooldown: 0, health: 1200, maxHealth: 1200, team: 'player', type: 'tower' },
+        { x: 280, y: 337, range: 240, fireRate: 70, cooldown: 0, health: 4000, maxHealth: 4000, team: 'player', type: 'core' },
+        { x: WIDTH - 100, y: 180, range: 240, fireRate: 80, cooldown: 0, health: 1200, maxHealth: 1200, team: 'enemy', type: 'tower' },
+        { x: WIDTH - 100, y: 495, range: 240, fireRate: 80, cooldown: 0, health: 1200, maxHealth: 1200, team: 'enemy', type: 'tower' },
+        { x: WIDTH - 280, y: 337, range: 240, fireRate: 70, cooldown: 0, health: 4000, maxHealth: 4000, team: 'enemy', type: 'core' },
+      ],
+      bullets: [],
+      money: 400,
+      moneyFloat: 400,
+      enemyMoney: 400,
+      enemyMoneyFloat: 400,
+      wave: 1,
+      enemyUnitsLeft: 6,
+      enemyDeployTimer: 1500,
+      upgradeLevel: 0,
+      upgradeCost: 150,
+      towerUpgradeLevel: 0,
+      towerUpgradeCost: 200,
+      gameOver: false,
+      status: 'Ready',
+      spawnCooldowns: {},
+    };
+
+    let dragState = null;
+    let lastTime = Date.now();
+
+    const PLAYER_INCOME = 55;
+    const ENEMY_INCOME = 55;
+
+    function createParticle(x, y, vx, vy, life = 800, color = '#fbbf24') {
+      return { x, y, vx, vy, life, maxLife: life, color };
+    }
+
+    function createFloatingNumber(x, y, text, color = '#22c55e') {
+      return { x, y, text, color, life: 1500, maxLife: 1500 };
+    }
+
+    function updateParticles(delta) {
+      state.particles = state.particles.filter(p => {
+        p.x += p.vx * delta / 16;
+        p.y += p.vy * delta / 16;
+        p.vy += 0.3;
+        p.life -= delta;
+        return p.life > 0;
+      });
+    }
+
+    function updateFloatingNumbers(delta) {
+      state.floatingNumbers = state.floatingNumbers.filter(n => {
+        n.y -= 1.5;
+        n.life -= delta;
+        return n.life > 0;
+      });
+    }
+
+    function drawParticles() {
+      state.particles.forEach(p => {
+        const alpha = Math.max(0, p.life / p.maxLife);
+        ctx.fillStyle = p.color.replace(')', `, ${alpha})`).replace('rgb', 'rgba');
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    function drawFloatingNumbers() {
+      state.floatingNumbers.forEach(n => {
+        const alpha = Math.max(0, n.life / n.maxLife);
+        const scale = 1 + (1 - alpha) * 0.3;
+        ctx.fillStyle = n.color.replace('rgb', 'rgba').replace(')', `, ${alpha})`);
+        ctx.font = `bold ${14 * scale}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.fillText(n.text, n.x, n.y);
+      });
+    }
+
+    function saveGame() {
+      const gameData = {
+        wave: state.wave,
+        money: state.money,
+        playerKills: state.playerKills,
+        upgradeLevel: state.upgradeLevel,
+        towerUpgradeLevel: state.towerUpgradeLevel,
+      };
+      localStorage.setItem('stickmanDefenseSave', JSON.stringify(gameData));
+      state.status = 'Game saved!';
+      updateUI();
+    }
+
+    function loadGame() {
+      const saved = localStorage.getItem('stickmanDefenseSave');
+      if (saved) {
+        const gameData = JSON.parse(saved);
+        state.wave = gameData.wave;
+        state.money = gameData.money;
+        state.moneyFloat = gameData.money;
+        state.playerKills = gameData.playerKills;
+        state.upgradeLevel = gameData.upgradeLevel;
+        state.upgradeCost = 150 + state.upgradeLevel * 100;
+        state.towerUpgradeLevel = gameData.towerUpgradeLevel;
+        state.towerUpgradeCost = 200 + state.towerUpgradeLevel * 150;
+        return true;
+      }
+      return false;
+    }
+
+    function hasSavedGame() {
+      return localStorage.getItem('stickmanDefenseSave') !== null;
+    }
+
+    function updateUI() {
+      document.getElementById('waveDisplay').textContent = state.wave;
+      document.getElementById('moneyDisplay').textContent = Math.floor(state.money);
+      document.getElementById('enemyMoneyDisplay').textContent = Math.floor(state.enemyMoney);
+      document.getElementById('killsDisplay').textContent = state.playerKills;
+      document.getElementById('messageBox').textContent = state.status;
+
+      document.querySelectorAll('.unit-btn').forEach(btn => {
+        const unitId = Number(btn.dataset.unitId);
+        const unit = UNITS.find(u => u.id === unitId);
+        const cooldown = state.spawnCooldowns[unitId] || 0;
+        const affordable = state.money >= unit.cost;
+        const available = affordable && cooldown <= 0;
+
+        btn.classList.toggle('unavailable', !available);
+        const cooldownText = btn.querySelector('.cooldown');
+        if (cooldown > 0) {
+          cooldownText.textContent = `⏱ ${(cooldown / 1000).toFixed(1)}s`;
+          cooldownText.style.display = 'block';
+        } else {
+          cooldownText.style.display = 'none';
+        }
+      });
+
+      document.getElementById('upgradeBtn').disabled = state.money < state.upgradeCost || state.gameOver;
+    }
+
+    function createUnitButton(unit) {
+      const btn = document.createElement('button');
+      btn.className = 'unit-btn';
+      btn.dataset.unitId = unit.id;
+
+      const icon = document.createElement('div');
+      icon.className = 'unit-icon';
+      icon.style.backgroundColor = unit.color;
+      icon.innerHTML = unit.icon;
+
+      const atkSpeed = (1000 / unit.fireRate).toFixed(1);
+      const dps = (unit.damage * 1000 / unit.fireRate).toFixed(1);
+
+      const info = document.createElement('div');
+      info.className = 'unit-info';
+      info.innerHTML = `
+        <h3>${unit.name}</h3>
+        <p>💰 ${unit.cost} | 💚 ${unit.health}x10</p>
+        <p style="font-size: 0.75rem; color: #64748b;">🎯 ${unit.damage} dmg | ${atkSpeed}/s | ${unit.range}rng</p>
+        <p style="font-size: 0.75rem; color: #8ecae6;">⚡ ${dps} DPS</p>
+        <p class="cooldown" style="display: none; color: #fbbf24;">⏱ Ready</p>
+      `;
+
+      btn.appendChild(icon);
+      btn.appendChild(info);
+
+      btn.addEventListener('pointerdown', e => {
+        e.preventDefault();
+        const cooldown = state.spawnCooldowns[unit.id] || 0;
+        if (cooldown > 0) {
+          state.status = `${unit.name} is reloading...`;
+          return;
+        }
+        if (state.money < unit.cost) {
+          state.status = 'Not enough gold!';
+          return;
+        }
+        dragState = { unit };
+        document.getElementById('dragPreview').style.display = 'block';
+        document.getElementById('dragPreview').textContent = `${unit.name} - $${unit.cost}`;
+      });
+
+      return btn;
+    }
+
+    function deployUnit(x, y, unit) {
+      const posY = Math.max(40, Math.min(HEIGHT - 40, y));
+      state.units.push({
+        x, y: posY, speed: 1.5 + state.wave * 0.03,
+        walkPhase: Math.random() * Math.PI * 2,
+        range: unit.range, fireRate: unit.fireRate, cooldown: 0, attackTimer: 0,
+        health: unit.health * 10, maxHealth: unit.health * 10,
+        damage: unit.damage, baseDamage: unit.damage, id: unit.id,
+        name: unit.name, color: unit.color, team: 'player', icon: unit.icon,
+      });
+      state.money -= unit.cost;
+      state.moneyFloat -= unit.cost;
+      state.spawnCooldowns[unit.id] = unit.spawnCooldown;
+      state.status = `${unit.name} deployed!`;
+      sfx('deploy');
+    }
+
+    function drawStickman(x, y, color, scale = 1, phase = 0, isAttacking = false, attackPct = 0, isHit = false) {
+      const hitBounce = isHit ? Math.sin(Date.now() / 50) * 3 : 0;
+
+      // Natural walking cycle with realistic gait
+      // Vertical bob - head rises and falls with step
+      const verticalBob = Math.abs(Math.sin(phase)) * 2 * scale;
+
+      // Hip sway - natural side-to-side motion
+      const hipSway = Math.sin(phase) * 1.5 * scale;
+
+      // Legs with proper bending and movement
+      const leftPhase = phase;
+      const rightPhase = phase + Math.PI;
+
+      // Left leg animation - forward/back swing with knee bend
+      const leftLegForward = Math.sin(leftPhase) * 10 * scale;
+      const leftKneeBend = Math.max(0, Math.sin(leftPhase) * 6 * scale);
+
+      // Right leg animation - forward/back swing with knee bend
+      const rightLegForward = Math.sin(rightPhase) * 10 * scale;
+      const rightKneeBend = Math.max(0, Math.sin(rightPhase) * 6 * scale);
+
+      // Arms swing naturally opposite to legs - more subtle and hanging
+      const leftArmSwing = Math.sin(rightPhase) * 10 * scale;
+      const leftArmBend = Math.sin(rightPhase) * 2 * scale; // Slight bend, not lift
+
+      const rightArmSwing = Math.sin(leftPhase) * 10 * scale;
+      const rightArmBend = Math.sin(leftPhase) * 2 * scale;
+
+      // Torso lean - subtle lean in direction of forward leg
+      const torsoLean = Math.sin(phase) * 1 * scale;
+
+      // Attack modifications
+      let attackArmExtend = 0;
+      let attackArmLift = 0;
+      let attackRecoil = 0;
+
+      if (isAttacking) {
+        attackArmExtend = 14 * attackPct * scale;
+        attackArmLift = -10 * attackPct * scale;
+        attackRecoil = -2 * Math.sin(attackPct * Math.PI) * scale;
+      }
+
+      const headY = y - 14 * scale - verticalBob + hitBounce;
+      const neckY = y - 6 * scale - verticalBob;
+      const bodyX = x + attackRecoil + torsoLean;
+      const hipX = x + hipSway + attackRecoil;
+      const hipY = y + 14 * scale - verticalBob;
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.2 * scale;
+      ctx.fillStyle = color;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      // Head
+      ctx.beginPath();
+      ctx.arc(bodyX, headY, 8 * scale, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Head shine
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.beginPath();
+      ctx.arc(bodyX - 3 * scale, headY - 3 * scale, 2.5 * scale, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Body - curves slightly with torso
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.2 * scale;
+      ctx.beginPath();
+      ctx.moveTo(bodyX, neckY);
+      ctx.quadraticCurveTo(bodyX + torsoLean * 0.5, (neckY + hipY) / 2, hipX, hipY);
+      ctx.stroke();
+
+      // Left arm - swings with right leg, hangs naturally
+      const leftShoulderX = bodyX - 1 * scale;
+      const leftArmX = leftShoulderX - 8 * scale + leftArmSwing;
+      const leftArmY = neckY + 8 * scale + leftArmBend;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.2 * scale;
+      ctx.beginPath();
+      ctx.moveTo(leftShoulderX, neckY + 5 * scale);
+      ctx.lineTo(leftArmX, leftArmY);
+      ctx.stroke();
+
+      // Right arm (weapon arm) - swings with left leg, plus attack
+      const rightShoulderX = bodyX + 1 * scale;
+      const rightArmX = rightShoulderX + 8 * scale + rightArmSwing + attackArmExtend;
+      const rightArmY = neckY + 8 * scale + rightArmBend + attackArmLift;
+      ctx.beginPath();
+      ctx.moveTo(rightShoulderX, neckY + 5 * scale);
+      ctx.lineTo(rightArmX, rightArmY);
+      ctx.stroke();
+
+      // Left leg with knee bend
+      const leftHipX = hipX - 2 * scale;
+      const leftKneeX = leftHipX + leftLegForward * 0.5;
+      const leftKneeY = hipY + leftKneeBend;
+      const leftFootX = leftHipX + leftLegForward;
+      const leftFootY = y + 24 * scale - verticalBob;
+
+      ctx.beginPath();
+      ctx.moveTo(leftHipX, hipY);
+      ctx.lineTo(leftKneeX, leftKneeY);
+      ctx.lineTo(leftFootX, leftFootY);
+      ctx.stroke();
+
+      // Right leg with knee bend
+      const rightHipX = hipX + 2 * scale;
+      const rightKneeX = rightHipX + rightLegForward * 0.5;
+      const rightKneeY = hipY + rightKneeBend;
+      const rightFootX = rightHipX + rightLegForward;
+      const rightFootY = y + 24 * scale - verticalBob;
+
+      ctx.beginPath();
+      ctx.moveTo(rightHipX, hipY);
+      ctx.lineTo(rightKneeX, rightKneeY);
+      ctx.lineTo(rightFootX, rightFootY);
+      ctx.stroke();
+
+      // Eyes
+      ctx.fillStyle = '#000000';
+      ctx.beginPath();
+      ctx.arc(bodyX - 2.5 * scale, headY - 2 * scale, 1.2 * scale, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(bodyX + 2.5 * scale, headY - 2 * scale, 1.2 * scale, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawWeapon(x, y, color, weaponId, isAttacking, attackPct, phase = 0) {
+      const scale = 1;
+      const direction = 1;
+
+      // Get arm position from animation
+      const armSwingRight = Math.cos(phase + Math.PI) * 7 * scale;
+      const walkBob = Math.sin(phase) * 2 * scale;
+
+      // Calculate hand position based on animated arm
+      const handX = x + 8 * scale + armSwingRight * 0.3;
+      const handY = y + 2 * scale + walkBob + 6 * scale;
+
+      // Weapon extension during attack
+      const weaponExtend = isAttacking ? 16 * attackPct * scale : 0;
+      const attackLift = isAttacking ? -8 * attackPct * scale : 0;
+      const attackRecoil = isAttacking ? -2 * Math.sin(attackPct * Math.PI) * scale : 0;
+
+      const endX = handX + (18 + weaponExtend) * direction + attackRecoil;
+      const endY = handY - 4 - (6 * attackPct) + attackLift;
+
+      switch (weaponId) {
+        case 1: // Wizard
+          ctx.strokeStyle = '#fbbf24';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(handX, handY);
+          ctx.lineTo(endX, endY);
+          ctx.stroke();
+          ctx.fillStyle = '#a78bfa';
+          ctx.beginPath();
+          ctx.arc(endX, endY, 4, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+        case 2: // Sniper
+          ctx.strokeStyle = '#64748b';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(handX, handY);
+          ctx.lineTo(endX, endY);
+          ctx.stroke();
+          break;
+        case 3: // Gunner
+          ctx.fillStyle = '#64748b';
+          ctx.fillRect(handX, handY - 3, 16 + weaponExtend * 0.7, 6);
+          break;
+        case 4: // Boxer
+          ctx.fillStyle = '#dc2626';
+          ctx.beginPath();
+          ctx.arc(handX + 8 + weaponExtend * 0.5, handY - 8, 5, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+        case 5: // Ninja
+          ctx.strokeStyle = '#1f2937';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(handX, handY);
+          ctx.lineTo(endX, endY);
+          ctx.stroke();
+          break;
+        case 6: // Knight
+          ctx.strokeStyle = '#fbbf24';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(handX, handY);
+          ctx.lineTo(endX, endY);
+          ctx.stroke();
+          break;
+        case 7: // Archer
+          ctx.strokeStyle = '#92400e';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(handX, handY - 8);
+          ctx.quadraticCurveTo(handX + 8, handY, handX, handY + 8);
+          ctx.stroke();
+          ctx.strokeStyle = '#22c55e';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(handX + 8, handY);
+          ctx.lineTo(endX, endY);
+          ctx.stroke();
+          break;
+        case 8: // Sith
+          ctx.shadowColor = '#8b5cf6';
+          ctx.shadowBlur = 10 + 10 * attackPct;
+          ctx.strokeStyle = '#8b5cf6';
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.moveTo(handX, handY);
+          ctx.lineTo(endX, endY);
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+          break;
+      }
+    }
+
+    function drawTower(tower) {
+      const size = tower.type === 'core' ? 50 : 35;
+      ctx.fillStyle = tower.team === 'player' ? '#10b981' : '#ef4444';
+      ctx.beginPath();
+      ctx.arc(tower.x, tower.y, size, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(tower.x, tower.y, size, 0, Math.PI * 2);
+      ctx.stroke();
+
+      drawStickman(tower.x, tower.y, '#082032', 0.8, 0, false, 0, false);
+
+      // Health bar
+      const healthW = size * 2.2;
+      const healthH = 6;
+      ctx.fillStyle = '#1f2937';
+      ctx.fillRect(tower.x - healthW / 2, tower.y + size + 8, healthW, healthH);
+      ctx.fillStyle = tower.team === 'player' ? '#22c55e' : '#fb7185';
+      ctx.fillRect(tower.x - healthW / 2, tower.y + size + 8, healthW * (tower.health / tower.maxHealth), healthH);
+    }
+
+    function findNearestEnemy(unit) {
+      let nearest = null;
+      let nearestDist = Infinity;
+
+      // Prioritize units over towers for combat units
+      const enemies = unit.team === 'player' ? state.enemies : state.units;
+      const towers = unit.team === 'player' ?
+        state.towers.filter(t => t.team === 'enemy' && t.health > 0) :
+        state.towers.filter(t => t.team === 'player' && t.health > 0);
+
+      // Check enemies first
+      enemies.forEach(t => {
+        if (t.health <= 0) return;
+        const dist = Math.hypot(t.x - unit.x, t.y - unit.y);
+        if (dist < nearestDist) {
+          nearestDist = dist;
+          nearest = t;
+        }
+      });
+
+      // Only target towers if no enemies nearby
+      if (nearestDist > 300) {
+        towers.forEach(t => {
+          if (t.health <= 0) return;
+          const dist = Math.hypot(t.x - unit.x, t.y - unit.y);
+          if (dist < nearestDist) {
+            nearestDist = dist;
+            nearest = t;
+          }
+        });
+      }
+
+      return { target: nearest, dist: nearestDist };
+    }
+
+    function update(delta) {
+      if (state.gameOver || gamePaused) return;
+
+      // Update effects
+      updateParticles(delta);
+      updateFloatingNumbers(delta);
+      if (state.screenShake > 0) state.screenShake -= delta / 16;
+
+      // Income
+      state.moneyFloat += PLAYER_INCOME * delta / 1000;
+      state.money = Math.floor(state.moneyFloat);
+      state.enemyMoneyFloat += ENEMY_INCOME * delta / 1000;
+      state.enemyMoney = Math.floor(state.enemyMoneyFloat);
+
+      // Spawn cooldowns
+      Object.keys(state.spawnCooldowns).forEach(key => {
+        state.spawnCooldowns[key] -= delta;
+        if (state.spawnCooldowns[key] < 0) state.spawnCooldowns[key] = 0;
+      });
+
+      // Enemy deployment
+      if (state.enemyUnitsLeft > 0) {
+        state.enemyDeployTimer -= delta;
+        if (state.enemyDeployTimer <= 0) {
+          const affordable = UNITS.filter(u => u.cost <= state.enemyMoney);
+          if (affordable.length > 0) {
+            const unit = affordable[Math.floor(Math.random() * affordable.length)];
+            const y = 80 + Math.random() * (HEIGHT - 160);
+            state.enemies.push({
+              x: WIDTH + 30, y, speed: -1.4 - state.wave * 0.03,
+              walkPhase: Math.random() * Math.PI * 2,
+              range: unit.range, fireRate: unit.fireRate, cooldown: 0, attackTimer: 0,
+              health: unit.health * 10, maxHealth: unit.health * 10,
+              damage: unit.damage, id: unit.id, name: unit.name, color: unit.color,
+              team: 'enemy', icon: unit.icon,
+            });
+            state.enemyMoney -= unit.cost;
+            state.enemyMoneyFloat -= unit.cost;
+            state.enemyUnitsLeft--;
+            sfx('enemyDeploy');
+          }
+          state.enemyDeployTimer = 1300;
+        }
+      }
+
+      // Update units
+      state.units.forEach(u => {
+        if (u.health <= 0) return;
+        if (u.attackTimer <= 0) {
+          u.walkPhase += delta * 0.008;
+        }
+        if (u.cooldown > 0) u.cooldown -= delta;
+        if (u.attackTimer > 0) u.attackTimer -= delta;
+
+        const { target, dist } = findNearestEnemy(u);
+        if (target) {
+          // Move towards target if out of range
+          if (dist > u.range) {
+            const dx = target.x - u.x;
+            const dy = target.y - u.y;
+            const moveDist = Math.min(u.speed * delta / 16, dist - u.range);
+            u.x += (dx / dist) * moveDist;
+            u.y += (dy / dist) * moveDist;
+          }
+          // Attack when in range
+          if (dist <= u.range && u.cooldown <= 0) {
+            state.bullets.push({ x: u.x, y: u.y, tx: target, damage: u.damage, team: 'player' });
+            u.cooldown = u.fireRate;
+            u.attackTimer = 200;
+            sfx('shoot');
+          }
+        } else {
+          // Move forward if no target
+          u.x += u.speed * delta / 16;
+        }
+
+        u.x = Math.min(u.x, WIDTH - 20);
+      });
+
+      state.enemies.forEach(u => {
+        if (u.health <= 0) return;
+        if (u.attackTimer <= 0) {
+          u.walkPhase += delta * 0.008;
+        }
+        if (u.cooldown > 0) u.cooldown -= delta;
+        if (u.attackTimer > 0) u.attackTimer -= delta;
+
+        const { target, dist } = findNearestEnemy(u);
+        if (target) {
+          // Move towards target if out of range
+          if (dist > u.range) {
+            const dx = target.x - u.x;
+            const dy = target.y - u.y;
+            const moveDist = Math.min(Math.abs(u.speed) * delta / 16, dist - u.range);
+            u.x += (dx / dist) * moveDist;
+            u.y += (dy / dist) * moveDist;
+          }
+          // Attack when in range
+          if (dist <= u.range && u.cooldown <= 0) {
+            state.bullets.push({ x: u.x, y: u.y, tx: target, damage: u.damage, team: 'enemy' });
+            u.cooldown = u.fireRate;
+            u.attackTimer = 200;
+            sfx('shoot');
+          }
+        } else {
+          // Move forward if no target
+          u.x += u.speed * delta / 16;
+        }
+
+        u.x = Math.max(u.x, 20);
+      });
+
+      // Towers
+      state.towers.forEach(tower => {
+        if (tower.cooldown > 0) tower.cooldown -= delta;
+        if (tower.health <= 0) return;
+
+        const targets = tower.team === 'player' ?
+          state.enemies.concat(state.towers.filter(t => t.team === 'enemy' && t.health > 0)) :
+          state.units.concat(state.towers.filter(t => t.team === 'player' && t.health > 0));
+
+        const { target, dist } = findNearestEnemy({ ...tower, team: tower.team });
+        if (target && dist <= tower.range && tower.cooldown <= 0) {
+          state.bullets.push({ x: tower.x, y: tower.y, tx: target, damage: 14, team: tower.team, isTower: true });
+          tower.cooldown = tower.fireRate;
+          sfx('shoot');
+        }
+      });
+
+      // Bullets
+      state.bullets = state.bullets.filter(b => {
+        if (!b.tx || b.tx.health <= 0) return false;
+        const dx = b.tx.x - b.x;
+        const dy = b.tx.y - b.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist < 15) {
+          b.tx.health -= b.damage;
+
+          // Particle explosion on hit
+          for (let i = 0; i < 6; i++) {
+            const angle = (Math.PI * 2 * i) / 6;
+            state.particles.push(createParticle(
+              b.x, b.y,
+              Math.cos(angle) * 3,
+              Math.sin(angle) * 3,
+              600,
+              '#fbbf24'
+            ));
+          }
+
+          // Floating damage number
+          state.floatingNumbers.push(createFloatingNumber(b.tx.x, b.tx.y - 20, Math.floor(b.damage), '#ff6b6b'));
+
+          // Screen shake on big damage
+          if (b.damage > 50) {
+            state.screenShake = 3;
+          }
+
+          sfx('hit');
+
+          if (b.tx.health <= 0) {
+            b.tx.health = 0;
+            // Bigger particles on death
+            for (let i = 0; i < 12; i++) {
+              const angle = (Math.PI * 2 * i) / 12;
+              state.particles.push(createParticle(
+                b.tx.x, b.tx.y,
+                Math.cos(angle) * 4,
+                Math.sin(angle) * 4,
+                800,
+                b.tx.color
+              ));
+            }
+            if (b.team === 'player' && b.tx.team === 'enemy') {
+              state.moneyFloat += 20;
+              state.money = Math.floor(state.moneyFloat);
+              state.playerKills++;
+              state.floatingNumbers.push(createFloatingNumber(b.tx.x, b.tx.y - 40, '+20$', '#4ade80'));
+            }
+          }
+          return false;
+        }
+        b.x += dx / dist * 10;
+        b.y += dy / dist * 10;
+        return true;
+      });
+
+      // Remove dead units
+      state.units = state.units.filter(u => u.health > 0 && u.x > -30);
+      state.enemies = state.enemies.filter(u => u.health > 0 && u.x < WIDTH + 30);
+
+      // Check breaches
+      state.enemies.forEach(u => {
+        if (u.x <= 0) {
+          u.health = 0;
+          state.status = 'Enemy reached your base!';
+        }
+      });
+
+      // Wave progression
+      if (state.enemyUnitsLeft <= 0 && state.enemies.length === 0) {
+        state.wave++;
+        state.enemyUnitsLeft = 8 + state.wave * 2;
+        state.enemyDeployTimer = 1200;
+        state.status = `Wave ${state.wave} incoming!`;
+      }
+
+      // Game over
+      const playerTowersAlive = state.towers.filter(t => t.team === 'player' && t.health > 0);
+      if (playerTowersAlive.length === 0) {
+        state.gameOver = true;
+        state.status = 'Game Over! Click to restart';
+        sfx('gameover');
+      }
+
+      updateUI();
+    }
+
+    function draw() {
+      // Screen shake effect
+      const shake = state.screenShake > 0 ? state.screenShake : 0;
+      const shakeX = (Math.random() - 0.5) * shake * 2;
+      const shakeY = (Math.random() - 0.5) * shake * 2;
+
+      ctx.save();
+      ctx.translate(shakeX, shakeY);
+
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+      // Zones
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.08)';
+      ctx.fillRect(0, 0, PLAYER_DEPLOY_WIDTH, HEIGHT);
+      ctx.fillStyle = 'rgba(239, 68, 68, 0.08)';
+      ctx.fillRect(ENEMY_DEPLOY_START, 0, 200, HEIGHT);
+
+      ctx.strokeStyle = 'rgba(148, 163, 184, 0.2)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(2, 2, WIDTH - 4, HEIGHT - 4);
+
+      state.towers.forEach(drawTower);
+      state.units.forEach(u => {
+        const isAttacking = u.attackTimer > 0;
+        const attackPct = isAttacking ? u.attackTimer / 200 : 0;
+        drawStickman(u.x, u.y, u.color, 1, u.walkPhase, isAttacking, attackPct, false);
+        drawWeapon(u.x, u.y, u.color, u.id, isAttacking, attackPct, u.walkPhase);
+      });
+
+      state.enemies.forEach(u => {
+        const isAttacking = u.attackTimer > 0;
+        const attackPct = isAttacking ? u.attackTimer / 200 : 0;
+        drawStickman(u.x, u.y, u.color, 1, u.walkPhase, isAttacking, attackPct, false);
+        drawWeapon(u.x, u.y, u.color, u.id, isAttacking, attackPct, u.walkPhase);
+      });
+
+      state.bullets.forEach(b => {
+        ctx.fillStyle = b.team === 'player' ? '#3b82f6' : '#f43f5e';
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Draw particle effects and floating numbers
+      drawParticles();
+      drawFloatingNumbers();
+
+      ctx.restore();
+    }
+
+    function gameLoop() {
+      const now = Date.now();
+      const delta = now - lastTime;
+      lastTime = now;
+
+      update(delta);
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Menu handling
+    const menuScreen = document.getElementById('menuScreen');
+    const gameContainer = document.getElementById('gameContainer');
+    const playBtn = document.getElementById('playBtn');
+    const loadBtn = document.getElementById('loadBtn');
+
+    // Show load button if there's a saved game
+    if (hasSavedGame()) {
+      loadBtn.style.display = 'block';
+    }
+
+    playBtn.addEventListener('click', () => {
+      gamePaused = false;
+      menuScreen.style.display = 'none';
+      gameContainer.style.display = 'grid';
+    });
+
+    loadBtn.addEventListener('click', () => {
+      if (loadGame()) {
+        gamePaused = false;
+        menuScreen.style.display = 'none';
+        gameContainer.style.display = 'grid';
+        state.status = 'Game loaded!';
+        updateUI();
+      }
+    });
+
+    // Auto-save every 30 seconds during gameplay
+    setInterval(() => {
+      if (!gamePaused && !state.gameOver) {
+        saveGame();
+      }
+    }, 30000);
+
+    // Keyboard shortcuts for unit deployment (1-8)
+    document.addEventListener('keydown', (e) => {
+      if (menuScreen.style.display !== 'none') return; // Don't deploy from menu
+      const unitId = parseInt(e.key);
+      if (unitId >= 1 && unitId <= 8) {
+        const unit = UNITS.find(u => u.id === unitId);
+        if (unit) {
+          const cooldown = state.spawnCooldowns[unit.id] || 0;
+          if (cooldown > 0) {
+            state.status = `${unit.name} is reloading...`;
+            return;
+          }
+          if (state.money < unit.cost) {
+            state.status = 'Not enough gold!';
+            return;
+          }
+          const x = 80 + Math.random() * 60;
+          const y = 100 + Math.random() * (HEIGHT - 200);
+          deployUnit(x, y, unit);
+        }
+      }
+    });
+
+    document.getElementById('unitsGrid').appendChild(document.createElement('div')).style.display = 'none';
+    UNITS.forEach(u => document.getElementById('unitsGrid').appendChild(createUnitButton(u)));
+
+    document.getElementById('upgradeBtn').addEventListener('click', () => {
+      if (state.money >= state.upgradeCost) {
+        state.money -= state.upgradeCost;
+        state.moneyFloat -= state.upgradeCost;
+        state.upgradeLevel++;
+        state.upgradeCost = 150 + state.upgradeLevel * 100;
+        state.units.forEach(u => {
+          u.damage = Math.round(u.baseDamage * (1 + state.upgradeLevel * 0.15));
+        });
+        state.status = 'Unit weapons upgraded!';
+        sfx('upgrade');
+        document.getElementById('upgradeCost').textContent = `$${state.upgradeCost}`;
+        updateUI();
+      }
+    });
+
+    document.getElementById('upgradeTowerBtn').addEventListener('click', () => {
+      if (state.money >= state.towerUpgradeCost) {
+        state.money -= state.towerUpgradeCost;
+        state.moneyFloat -= state.towerUpgradeCost;
+        state.towerUpgradeLevel++;
+        state.towerUpgradeCost = 200 + state.towerUpgradeLevel * 150;
+        state.towers.forEach(tower => {
+          tower.fireRate = Math.max(20, tower.fireRate - 5);
+        });
+        state.status = 'Tower weapons upgraded!';
+        sfx('upgrade');
+        document.getElementById('upgradeTowerCost').textContent = `$${state.towerUpgradeCost}`;
+        updateUI();
+      }
+    });
+
+    document.addEventListener('pointermove', e => {
+      if (!dragState) return;
+      const preview = document.getElementById('dragPreview');
+      preview.style.left = (e.clientX + 10) + 'px';
+      preview.style.top = (e.clientY + 10) + 'px';
+    });
+
+    document.addEventListener('pointerup', e => {
+      if (!dragState) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
+        if (x <= PLAYER_DEPLOY_WIDTH) {
+          deployUnit(x, y, dragState.unit);
+        } else {
+          state.status = 'Deploy on the left side!';
+        }
+      }
+      dragState = null;
+      document.getElementById('dragPreview').style.display = 'none';
+    });
+
+    canvas.addEventListener('click', () => {
+      if (state.gameOver) {
+        state.wave = 1;
+        state.money = 400;
+        state.moneyFloat = 400;
+        state.enemyMoney = 400;
+        state.enemyMoneyFloat = 400;
+        state.units = [];
+        state.enemies = [];
+        state.bullets = [];
+        state.playerKills = 0;
+        state.enemyUnitsLeft = 6;
+        state.upgradeLevel = 0;
+        state.upgradeCost = 150;
+        state.towerUpgradeLevel = 0;
+        state.towerUpgradeCost = 200;
+        state.spawnCooldowns = {};
+        state.particles = [];
+        state.floatingNumbers = [];
+        state.towers = [
+          { x: 100, y: 180, range: 240, fireRate: 80, cooldown: 0, health: 1200, maxHealth: 1200, team: 'player', type: 'tower' },
+          { x: 100, y: 495, range: 240, fireRate: 80, cooldown: 0, health: 1200, maxHealth: 1200, team: 'player', type: 'tower' },
+          { x: 280, y: 337, range: 240, fireRate: 70, cooldown: 0, health: 4000, maxHealth: 4000, team: 'player', type: 'core' },
+          { x: WIDTH - 100, y: 180, range: 240, fireRate: 80, cooldown: 0, health: 1200, maxHealth: 1200, team: 'enemy', type: 'tower' },
+          { x: WIDTH - 100, y: 495, range: 240, fireRate: 80, cooldown: 0, health: 1200, maxHealth: 1200, team: 'enemy', type: 'tower' },
+          { x: WIDTH - 280, y: 337, range: 240, fireRate: 70, cooldown: 0, health: 4000, maxHealth: 4000, team: 'enemy', type: 'core' },
+        ];
+        state.gameOver = false;
+        state.status = 'Ready';
+        state.enemyDeployTimer = 1500;
+        gamePaused = false;
+        updateUI();
+      }
+    });
+
+    updateUI();
+    gameLoop();
+  </script>
+</body>
+</html>
