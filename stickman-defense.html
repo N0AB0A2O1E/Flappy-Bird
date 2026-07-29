@@ -1525,7 +1525,7 @@
 
     // Keyboard shortcuts for unit deployment (1-8)
     document.addEventListener('keydown', (e) => {
-      if (menuScreen.style.display !== 'none') return; // Don't deploy from menu
+      if (document.getElementById('menuScreen').style.display !== 'none') return; // Don't deploy from menu
       const unitId = parseInt(e.key);
       if (unitId >= 1 && unitId <= 8) {
         const unit = UNITS.find(u => u.id === unitId);
