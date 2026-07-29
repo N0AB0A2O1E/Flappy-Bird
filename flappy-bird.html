@@ -249,6 +249,9 @@
       let screenShake = 0;
       let comboMultiplier = 1;
       let lastScoreFrame = 0;
+      let fpsCounter = 0;
+      let lastTime = performance.now();
+      let frameCount = 0;
 
       const motivationalMessages = {
         20: 'Nice! Keep it up!',
@@ -320,6 +323,7 @@
 
       function update() {
         updateParticles();
+        updateFPS();
         if (screenShake > 0) screenShake--;
         if (bird.flapFrame > 0) bird.flapFrame--;
 
@@ -540,6 +544,28 @@
         return x >= btnX && x <= btnX + btnWidth && y >= btnY && y <= btnY + btnHeight;
       }
 
+      function updateFPS() {
+        const now = performance.now();
+        const deltaTime = now - lastTime;
+
+        frameCount++;
+        if (deltaTime >= 1000) {
+          fpsCounter = frameCount;
+          frameCount = 0;
+          lastTime = now;
+        }
+      }
+
+      function drawFPS() {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillRect(10, HEIGHT - 50, 80, 40);
+
+        ctx.fillStyle = '#00ff00';
+        ctx.font = 'bold 16px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`FPS: ${fpsCounter}`, 15, HEIGHT - 28);
+      }
+
       function drawOverlay() {
         if (!started) {
           ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
@@ -638,6 +664,7 @@
 
         ctx.restore();
         drawPauseButton();
+        drawFPS();
         drawOverlay();
       }
 
