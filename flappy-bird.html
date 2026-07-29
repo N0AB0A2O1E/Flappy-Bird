@@ -33,27 +33,7 @@
       }
 
       .pause-btn {
-        position: fixed;
-        top: 220px;
-        right: calc(50% - 230px);
-        padding: 10px 16px;
-        background: #4caf50;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-weight: bold;
-        cursor: pointer;
-        font-size: 14px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        z-index: 1000;
-      }
-
-      .pause-btn:hover {
-        background: #45a049;
-      }
-
-      .pause-btn:active {
-        transform: scale(0.95);
+        display: none;
       }
     </style>
   </head>
@@ -532,6 +512,34 @@
         ctx.restore();
       }
 
+      function drawPauseButton() {
+        if (!started || gameOver || paused) return;
+
+        const btnWidth = 70;
+        const btnHeight = 40;
+        const btnX = WIDTH - btnWidth - 15;
+        const btnY = 15;
+
+        ctx.fillStyle = '#4caf50';
+        ctx.fillRect(btnX, btnY, btnWidth, btnHeight);
+        ctx.strokeStyle = '#2e7d32';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(btnX, btnY, btnWidth, btnHeight);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Pause', btnX + btnWidth / 2, btnY + btnHeight / 2 + 5);
+      }
+
+      function isPauseButtonClicked(x, y) {
+        const btnWidth = 70;
+        const btnHeight = 40;
+        const btnX = WIDTH - btnWidth - 15;
+        const btnY = 15;
+        return x >= btnX && x <= btnX + btnWidth && y >= btnY && y <= btnY + btnHeight;
+      }
+
       function drawOverlay() {
         if (!started) {
           ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
@@ -627,6 +635,7 @@
         drawBird();
         drawParticles();
         drawScore();
+        drawPauseButton();
 
         ctx.restore();
         drawOverlay();
@@ -750,6 +759,11 @@
           return;
         }
 
+        if (started && !gameOver && isPauseButtonClicked(pos.x, pos.y)) {
+          paused = !paused;
+          return;
+        }
+
         if ((gameOver || finished) && isInsideRestartButton(pos.x, pos.y)) {
           if (score > bestScore) {
             bestScore = score;
@@ -780,6 +794,11 @@
             resetGame();
             playBackgroundMusic();
           }
+          return;
+        }
+
+        if (started && !gameOver && isPauseButtonClicked(x, y)) {
+          paused = !paused;
           return;
         }
 
