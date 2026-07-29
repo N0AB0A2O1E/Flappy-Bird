@@ -513,23 +513,23 @@
       }
 
       function drawPauseButton() {
-        if (!started || gameOver || paused) return;
+        if (!started || gameOver) return;
 
-        const btnWidth = 70;
+        const btnWidth = 75;
         const btnHeight = 40;
         const btnX = WIDTH - btnWidth - 15;
         const btnY = 15;
 
-        ctx.fillStyle = '#4caf50';
+        ctx.fillStyle = paused ? '#ff9800' : '#4caf50';
         ctx.fillRect(btnX, btnY, btnWidth, btnHeight);
-        ctx.strokeStyle = '#2e7d32';
+        ctx.strokeStyle = paused ? '#e65100' : '#2e7d32';
         ctx.lineWidth = 2;
         ctx.strokeRect(btnX, btnY, btnWidth, btnHeight);
 
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Arial';
+        ctx.font = 'bold 14px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText('Pause', btnX + btnWidth / 2, btnY + btnHeight / 2 + 5);
+        ctx.fillText(paused ? 'Resume' : 'Pause', btnX + btnWidth / 2, btnY + btnHeight / 2 + 5);
       }
 
       function isPauseButtonClicked(x, y) {
