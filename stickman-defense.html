@@ -882,7 +882,6 @@
       state.spawnCooldowns[unit.id] = unit.spawnCooldown;
       const mode = state.defendModes[unit.id] ? ' in defend mode' : '';
       state.status = `${unit.name} deployed${mode}!`;
-      sfx('deploy');
     }
 
     function drawStickman(x, y, color, scale = 1, phase = 0, isAttacking = false, attackPct = 0, isHit = false) {
