@@ -1052,9 +1052,8 @@
       // Weapon extension during attack
       const weaponExtend = isAttacking ? 16 * attackPct * scale : 0;
       const attackLift = isAttacking ? -8 * attackPct * scale : 0;
-      const attackRecoil = isAttacking ? -2 * Math.sin(attackPct * Math.PI) * scale : 0;
 
-      const endX = handX + (18 + weaponExtend) * direction + attackRecoil;
+      const endX = handX + (18 + weaponExtend) * direction + (isAttacking ? -2 * Math.sin(attackPct * Math.PI) * scale : 0);
       const endY = handY - 4 - (6 * attackPct) + attackLift;
 
       switch (weaponId) {
