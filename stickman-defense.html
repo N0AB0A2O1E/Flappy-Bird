@@ -147,6 +147,27 @@
       cursor: not-allowed;
     }
 
+    .cooldown-bar-container {
+      width: 100%;
+      height: 4px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 4px;
+      display: none;
+    }
+
+    .cooldown-bar-container.active {
+      display: block;
+    }
+
+    .cooldown-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      border-radius: 2px;
+      transition: width 0.1s linear;
+    }
+
     .main-content {
       display: flex;
       flex-direction: column;
@@ -370,6 +391,78 @@
       .menu-content h1 {
         font-size: 1.8rem;
       }
+
+      .game-container {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 12px;
+      }
+
+      .sidebar {
+        width: 100%;
+        order: -1;
+      }
+
+      .units-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+      }
+
+      .unit-btn {
+        grid-template-columns: 1fr;
+        padding: 8px;
+      }
+
+      .unit-icon {
+        width: 100%;
+        height: 40px;
+        margin-bottom: 4px;
+      }
+
+      .unit-info {
+        font-size: 0.7rem;
+      }
+
+      .unit-info h3 {
+        font-size: 0.8rem;
+      }
+
+      .stats-bar {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+
+      .stat-card {
+        padding: 12px;
+      }
+
+      .stat-label {
+        font-size: 0.65rem;
+      }
+
+      .stat-value {
+        font-size: 1.3rem;
+      }
+
+      .message-box {
+        font-size: 0.85rem;
+        padding: 12px;
+      }
+
+      .upgrade-btn {
+        padding: 10px 8px;
+        font-size: 0.75rem;
+        min-height: 40px;
+      }
+
+      .defend-btn {
+        padding: 8px 6px;
+        font-size: 0.7rem;
+      }
+
+      canvas {
+        aspect-ratio: 16 / 9;
+      }
     }
   </style>
 </head>
@@ -515,14 +608,14 @@
     }
 
     const UNITS = [
-      { id: 1, name: 'Wizard', icon: '🧙', cost: 340, range: 200, fireRate: 700, damage: 32, health: 90, spawnCooldown: 600, color: '#a855f7' },
-      { id: 2, name: 'Sniper', icon: '🎯', cost: 450, range: 280, fireRate: 800, damage: 70, health: 70, spawnCooldown: 800, color: '#0ea5e9' },
-      { id: 3, name: 'Gunner', icon: '💥', cost: 300, range: 120, fireRate: 100, damage: 6, health: 100, spawnCooldown: 300, color: '#f97316' },
-      { id: 4, name: 'Boxer', icon: '🥊', cost: 420, range: 80, fireRate: 480, damage: 38, health: 140, spawnCooldown: 700, color: '#ef4444' },
-      { id: 5, name: 'Ninja', icon: '🥷', cost: 360, range: 150, fireRate: 450, damage: 25, health: 80, spawnCooldown: 500, color: '#1e293b' },
-      { id: 6, name: 'Knight', icon: '⚔️', cost: 370, range: 120, fireRate: 550, damage: 28, health: 150, spawnCooldown: 750, color: '#c084fc' },
-      { id: 7, name: 'Archer', icon: '🏹', cost: 310, range: 240, fireRate: 650, damage: 22, health: 80, spawnCooldown: 550, color: '#10b981' },
-      { id: 8, name: 'Sith', icon: '🔴', cost: 400, range: 160, fireRate: 500, damage: 48, health: 100, spawnCooldown: 850, color: '#8b5cf6' },
+      { id: 1, name: 'Wizard', icon: '🧙', cost: 340, range: 200, fireRate: 700, damage: 32, health: 90, spawnCooldown: 2000, color: '#a855f7' },
+      { id: 2, name: 'Sniper', icon: '🎯', cost: 450, range: 280, fireRate: 800, damage: 70, health: 70, spawnCooldown: 2000, color: '#0ea5e9' },
+      { id: 3, name: 'Gunner', icon: '💥', cost: 300, range: 120, fireRate: 100, damage: 6, health: 100, spawnCooldown: 2000, color: '#f97316' },
+      { id: 4, name: 'Boxer', icon: '🥊', cost: 420, range: 80, fireRate: 480, damage: 38, health: 140, spawnCooldown: 2000, color: '#ef4444' },
+      { id: 5, name: 'Ninja', icon: '🥷', cost: 360, range: 150, fireRate: 450, damage: 25, health: 80, spawnCooldown: 2000, color: '#1e293b' },
+      { id: 6, name: 'Knight', icon: '⚔️', cost: 370, range: 120, fireRate: 550, damage: 28, health: 150, spawnCooldown: 2000, color: '#c084fc' },
+      { id: 7, name: 'Archer', icon: '🏹', cost: 310, range: 240, fireRate: 650, damage: 22, health: 80, spawnCooldown: 2000, color: '#10b981' },
+      { id: 8, name: 'Sith', icon: '🔴', cost: 400, range: 160, fireRate: 500, damage: 48, health: 100, spawnCooldown: 2000, color: '#8b5cf6' },
     ];
 
     let gamePaused = true; // Game starts paused in menu
@@ -537,10 +630,10 @@
       towers: [
         { x: 100, y: 180, range: 240, fireRate: 80, cooldown: 0, health: 1200, maxHealth: 1200, team: 'player', type: 'tower' },
         { x: 100, y: 495, range: 240, fireRate: 80, cooldown: 0, health: 1200, maxHealth: 1200, team: 'player', type: 'tower' },
-        { x: 280, y: 337, range: 240, fireRate: 70, cooldown: 0, health: 4000, maxHealth: 4000, team: 'player', type: 'core' },
+        { x: 150, y: 337, range: 240, fireRate: 70, cooldown: 0, health: 4000, maxHealth: 4000, team: 'player', type: 'core' },
         { x: WIDTH - 100, y: 180, range: 240, fireRate: 80, cooldown: 0, health: 1200, maxHealth: 1200, team: 'enemy', type: 'tower' },
         { x: WIDTH - 100, y: 495, range: 240, fireRate: 80, cooldown: 0, health: 1200, maxHealth: 1200, team: 'enemy', type: 'tower' },
-        { x: WIDTH - 280, y: 337, range: 240, fireRate: 70, cooldown: 0, health: 4000, maxHealth: 4000, team: 'enemy', type: 'core' },
+        { x: WIDTH - 150, y: 337, range: 240, fireRate: 70, cooldown: 0, health: 4000, maxHealth: 4000, team: 'enemy', type: 'core' },
       ],
       bullets: [],
       money: 400,
@@ -561,6 +654,9 @@
 
     let dragState = null;
     let lastTime = Date.now();
+    let fpsCounter = 0;
+    let frameCount = 0;
+    let lastFpsTime = performance.now();
 
     const PLAYER_INCOME = 55;
     const ENEMY_INCOME = 55;
@@ -612,6 +708,27 @@
       });
     }
 
+    function updateFPS() {
+      const now = performance.now();
+      frameCount++;
+      if (now - lastFpsTime >= 1000) {
+        fpsCounter = frameCount;
+        frameCount = 0;
+        lastFpsTime = now;
+      }
+    }
+
+    function drawFPS() {
+      ctx.save();
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+      ctx.fillRect(WIDTH - 110, 10, 100, 35);
+      ctx.fillStyle = '#00ff00';
+      ctx.font = 'bold 14px monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText(`FPS: ${fpsCounter}`, WIDTH - 100, 30);
+      ctx.restore();
+    }
+
     function saveGame() {
       const gameData = {
         wave: state.wave,
@@ -661,12 +778,18 @@
         const available = affordable && cooldown <= 0;
 
         btn.classList.toggle('unavailable', !available);
-        const cooldownText = btn.querySelector('.cooldown');
-        if (cooldown > 0) {
-          cooldownText.textContent = `⏱ ${(cooldown / 1000).toFixed(1)}s`;
-          cooldownText.style.display = 'block';
-        } else {
-          cooldownText.style.display = 'none';
+
+        const cooldownContainer = btn.parentElement.querySelector('.cooldown-bar-container');
+        if (cooldownContainer) {
+          const cooldownBar = cooldownContainer.querySelector('.cooldown-bar');
+          if (cooldown > 0) {
+            cooldownContainer.classList.add('active');
+            const remainingPercent = Math.max(0, (cooldown / 2000) * 100);
+            cooldownBar.style.width = remainingPercent + '%';
+          } else {
+            cooldownContainer.classList.remove('active');
+            cooldownBar.style.width = '0%';
+          }
         }
       });
 
@@ -674,6 +797,11 @@
     }
 
     function createUnitButton(unit) {
+      const wrapper = document.createElement('div');
+      wrapper.style.display = 'flex';
+      wrapper.style.flexDirection = 'column';
+      wrapper.style.gap = '6px';
+
       const btn = document.createElement('button');
       btn.className = 'unit-btn';
       btn.dataset.unitId = unit.id;
@@ -693,11 +821,29 @@
         <p>💰 ${unit.cost} | 💚 ${unit.health}x10</p>
         <p style="font-size: 0.75rem; color: #64748b;">🎯 ${unit.damage} dmg | ${atkSpeed}/s | ${unit.range}rng</p>
         <p style="font-size: 0.75rem; color: #8ecae6;">⚡ ${dps} DPS</p>
-        <p class="cooldown" style="display: none; color: #fbbf24;">⏱ Ready</p>
       `;
+
+      const cooldownContainer = document.createElement('div');
+      cooldownContainer.className = 'cooldown-bar-container';
+      cooldownContainer.dataset.unitId = unit.id;
+      const cooldownBar = document.createElement('div');
+      cooldownBar.className = 'cooldown-bar';
+      cooldownBar.style.width = '0%';
+      cooldownContainer.appendChild(cooldownBar);
 
       btn.appendChild(icon);
       btn.appendChild(info);
+      btn.appendChild(cooldownContainer);
+
+      const defendBtn = document.createElement('button');
+      defendBtn.className = 'defend-btn';
+      defendBtn.textContent = '🛡️ Defend';
+      defendBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        state.defendModes[unit.id] = !state.defendModes[unit.id];
+        defendBtn.classList.toggle('active', state.defendModes[unit.id]);
+        state.status = `${unit.name} defend mode: ${state.defendModes[unit.id] ? 'ON' : 'OFF'}`;
+      });
 
       btn.addEventListener('pointerdown', e => {
         e.preventDefault();
@@ -715,7 +861,9 @@
         document.getElementById('dragPreview').textContent = `${unit.name} - $${unit.cost}`;
       });
 
-      return btn;
+      wrapper.appendChild(btn);
+      wrapper.appendChild(defendBtn);
+      return wrapper;
     }
 
     function deployUnit(x, y, unit) {
@@ -727,11 +875,13 @@
         health: unit.health * 10, maxHealth: unit.health * 10,
         damage: unit.damage, baseDamage: unit.damage, id: unit.id,
         name: unit.name, color: unit.color, team: 'player', icon: unit.icon,
+        isDefending: state.defendModes[unit.id] || false,
       });
       state.money -= unit.cost;
       state.moneyFloat -= unit.cost;
       state.spawnCooldowns[unit.id] = unit.spawnCooldown;
-      state.status = `${unit.name} deployed!`;
+      const mode = state.defendModes[unit.id] ? ' in defend mode' : '';
+      state.status = `${unit.name} deployed${mode}!`;
       sfx('deploy');
     }
 
@@ -869,13 +1019,35 @@
       const scale = 1;
       const direction = 1;
 
-      // Get arm position from animation
-      const armSwingRight = Math.cos(phase + Math.PI) * 7 * scale;
-      const walkBob = Math.sin(phase) * 2 * scale;
+      // Calculate animation values matching drawStickman
+      const verticalBob = Math.abs(Math.sin(phase)) * 2 * scale;
+      const hipSway = Math.sin(phase) * 1.5 * scale;
+      const leftPhase = phase;
+      const torsoLean = Math.sin(phase) * 1 * scale;
 
-      // Calculate hand position based on animated arm
-      const handX = x + 8 * scale + armSwingRight * 0.3;
-      const handY = y + 2 * scale + walkBob + 6 * scale;
+      let attackRecoil = 0;
+      if (isAttacking) {
+        attackRecoil = -2 * Math.sin(attackPct * Math.PI) * scale;
+      }
+
+      const neckY = y - 6 * scale - verticalBob;
+      const bodyX = x + attackRecoil + torsoLean;
+
+      // Right arm swing animation
+      const rightArmSwing = Math.sin(leftPhase) * 10 * scale;
+      const rightArmBend = Math.sin(leftPhase) * 2 * scale;
+
+      // Attack modifications
+      let attackArmExtend = 0;
+      let attackArmLift = 0;
+      if (isAttacking) {
+        attackArmExtend = 14 * attackPct * scale;
+        attackArmLift = -10 * attackPct * scale;
+      }
+
+      const rightShoulderX = bodyX + 1 * scale;
+      const handX = rightShoulderX + 8 * scale + rightArmSwing + attackArmExtend;
+      const handY = neckY + 8 * scale + rightArmBend + attackArmLift;
 
       // Weapon extension during attack
       const weaponExtend = isAttacking ? 16 * attackPct * scale : 0;
@@ -988,24 +1160,35 @@
       let nearest = null;
       let nearestDist = Infinity;
 
-      // Prioritize units over towers for combat units
       const enemies = unit.team === 'player' ? state.enemies : state.units;
       const towers = unit.team === 'player' ?
         state.towers.filter(t => t.team === 'enemy' && t.health > 0) :
         state.towers.filter(t => t.team === 'player' && t.health > 0);
 
-      // Check enemies first
-      enemies.forEach(t => {
+      // Check towers first if in range
+      towers.forEach(t => {
         if (t.health <= 0) return;
         const dist = Math.hypot(t.x - unit.x, t.y - unit.y);
-        if (dist < nearestDist) {
+        if (dist <= unit.range && dist < nearestDist) {
           nearestDist = dist;
           nearest = t;
         }
       });
 
-      // Only target towers if no enemies nearby
-      if (nearestDist > 300) {
+      // If no tower in range, check enemies
+      if (nearest === null) {
+        enemies.forEach(t => {
+          if (t.health <= 0) return;
+          const dist = Math.hypot(t.x - unit.x, t.y - unit.y);
+          if (dist < nearestDist) {
+            nearestDist = dist;
+            nearest = t;
+          }
+        });
+      }
+
+      // If still no target, check towers even if out of range
+      if (nearest === null) {
         towers.forEach(t => {
           if (t.health <= 0) return;
           const dist = Math.hypot(t.x - unit.x, t.y - unit.y);
@@ -1075,8 +1258,8 @@
 
         const { target, dist } = findNearestEnemy(u);
         if (target) {
-          // Move towards target if out of range
-          if (dist > u.range) {
+          // Move towards target if out of range (unless defending)
+          if (dist > u.range && !u.isDefending) {
             const dx = target.x - u.x;
             const dy = target.y - u.y;
             const moveDist = Math.min(u.speed * delta / 16, dist - u.range);
@@ -1090,8 +1273,8 @@
             u.attackTimer = 200;
             sfx('shoot');
           }
-        } else {
-          // Move forward if no target
+        } else if (!u.isDefending) {
+          // Move forward if no target and not defending
           u.x += u.speed * delta / 16;
         }
 
@@ -1226,11 +1409,19 @@
         state.status = `Wave ${state.wave} incoming!`;
       }
 
-      // Game over
+      // Game over - player loses
       const playerTowersAlive = state.towers.filter(t => t.team === 'player' && t.health > 0);
       if (playerTowersAlive.length === 0) {
         state.gameOver = true;
         state.status = 'Game Over! Click to restart';
+        sfx('gameover');
+      }
+
+      // Victory - enemy core destroyed
+      const enemyCoreAlive = state.towers.filter(t => t.team === 'enemy' && t.type === 'core' && t.health > 0);
+      if (enemyCoreAlive.length === 0) {
+        state.gameOver = true;
+        state.status = 'Congratulations, you have won! Click to restart';
         sfx('gameover');
       }
 
@@ -1286,6 +1477,7 @@
       drawFloatingNumbers();
 
       ctx.restore();
+      drawFPS();
     }
 
     function gameLoop() {
@@ -1293,37 +1485,36 @@
       const delta = now - lastTime;
       lastTime = now;
 
+      updateFPS();
       update(delta);
       draw();
       requestAnimationFrame(gameLoop);
     }
 
     // Menu handling
-    const menuScreen = document.getElementById('menuScreen');
-    const gameContainer = document.getElementById('gameContainer');
-    const playBtn = document.getElementById('playBtn');
-    const loadBtn = document.getElementById('loadBtn');
-
-    // Show load button if there's a saved game
-    if (hasSavedGame()) {
-      loadBtn.style.display = 'block';
+    function startGame() {
+      gamePaused = false;
+      document.getElementById('menuScreen').style.display = 'none';
+      document.getElementById('gameContainer').style.display = 'grid';
     }
 
-    playBtn.addEventListener('click', () => {
-      gamePaused = false;
-      menuScreen.style.display = 'none';
-      gameContainer.style.display = 'grid';
-    });
-
-    loadBtn.addEventListener('click', () => {
+    function loadGameStart() {
       if (loadGame()) {
         gamePaused = false;
-        menuScreen.style.display = 'none';
-        gameContainer.style.display = 'grid';
+        document.getElementById('menuScreen').style.display = 'none';
+        document.getElementById('gameContainer').style.display = 'grid';
         state.status = 'Game loaded!';
         updateUI();
       }
-    });
+    }
+
+    // Show load button if there's a saved game
+    if (hasSavedGame()) {
+      document.getElementById('loadBtn').style.display = 'block';
+    }
+
+    document.getElementById('playBtn').addEventListener('click', startGame);
+    document.getElementById('loadBtn').addEventListener('click', loadGameStart);
 
     // Auto-save every 30 seconds during gameplay
     setInterval(() => {
@@ -1400,8 +1591,12 @@
     document.addEventListener('pointerup', e => {
       if (!dragState) return;
       const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      const visualX = e.clientX - rect.left;
+      const visualY = e.clientY - rect.top;
+      const scaleX = WIDTH / rect.width;
+      const scaleY = HEIGHT / rect.height;
+      const x = visualX * scaleX;
+      const y = visualY * scaleY;
       if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
         if (x <= PLAYER_DEPLOY_WIDTH) {
           deployUnit(x, y, dragState.unit);
@@ -1435,10 +1630,10 @@
         state.towers = [
           { x: 100, y: 180, range: 240, fireRate: 80, cooldown: 0, health: 1200, maxHealth: 1200, team: 'player', type: 'tower' },
           { x: 100, y: 495, range: 240, fireRate: 80, cooldown: 0, health: 1200, maxHealth: 1200, team: 'player', type: 'tower' },
-          { x: 280, y: 337, range: 240, fireRate: 70, cooldown: 0, health: 4000, maxHealth: 4000, team: 'player', type: 'core' },
+          { x: 150, y: 337, range: 240, fireRate: 70, cooldown: 0, health: 4000, maxHealth: 4000, team: 'player', type: 'core' },
           { x: WIDTH - 100, y: 180, range: 240, fireRate: 80, cooldown: 0, health: 1200, maxHealth: 1200, team: 'enemy', type: 'tower' },
           { x: WIDTH - 100, y: 495, range: 240, fireRate: 80, cooldown: 0, health: 1200, maxHealth: 1200, team: 'enemy', type: 'tower' },
-          { x: WIDTH - 280, y: 337, range: 240, fireRate: 70, cooldown: 0, health: 4000, maxHealth: 4000, team: 'enemy', type: 'core' },
+          { x: WIDTH - 150, y: 337, range: 240, fireRate: 70, cooldown: 0, health: 4000, maxHealth: 4000, team: 'enemy', type: 'core' },
         ];
         state.gameOver = false;
         state.status = 'Ready';
