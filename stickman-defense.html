@@ -1602,7 +1602,10 @@
 
     document.addEventListener('pointerup', e => {
       try {
-        if (!dragState) return;
+        if (!dragState) {
+          console.log('No dragState');
+          return;
+        }
         const rect = canvas.getBoundingClientRect();
         const visualX = e.clientX - rect.left;
         const visualY = e.clientY - rect.top;
@@ -1611,16 +1614,26 @@
         const x = visualX * scaleX;
         const y = visualY * scaleY;
 
+        console.log('Drop:', { x, y, PLAYER_DEPLOY_WIDTH, visualX, visualY, clientX: e.clientX, rect_left: rect.left, rect_right: rect.right });
+
         if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
+          console.log('Over canvas, x:', x, 'PLAYER_DEPLOY_WIDTH:', PLAYER_DEPLOY_WIDTH);
           if (x <= PLAYER_DEPLOY_WIDTH) {
+            console.log('In deploy zone! Deploying...');
             const unit = dragState.unit;
+            console.log('Unit to deploy:', unit);
             deployUnit(x, y, unit);
+            console.log('Unit deployed');
           } else {
+            console.log('Not in deploy zone');
             state.status = 'Deploy on the left side!';
           }
         } else {
+          console.log('Not over canvas');
           state.status = 'Drop on the battlefield!';
         }
+      } catch (err) {
+        console.error('Error in pointerup:', err);
       } finally {
         dragState = null;
         const preview = document.getElementById('dragPreview');
