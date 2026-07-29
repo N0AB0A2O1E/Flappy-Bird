@@ -1609,12 +1609,19 @@
       const scaleY = HEIGHT / rect.height;
       const x = visualX * scaleX;
       const y = visualY * scaleY;
+
+      console.log('Pointerup:', { visualX, visualY, x, y, PLAYER_DEPLOY_WIDTH, inCanvas: e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom });
+
       if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
         if (x <= PLAYER_DEPLOY_WIDTH) {
+          console.log('Deploying unit at', x, y);
           deployUnit(x, y, dragState.unit);
+          state.status = `${dragState.unit.name} deployed!`;
         } else {
           state.status = 'Deploy on the left side!';
         }
+      } else {
+        state.status = 'Drop on the battlefield!';
       }
       dragState = null;
       document.getElementById('dragPreview').style.display = 'none';
