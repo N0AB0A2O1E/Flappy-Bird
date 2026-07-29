@@ -22,6 +22,7 @@
       gap: 22px;
       padding: 20px;
       box-sizing: border-box;
+      flex-wrap: wrap;
     }
 
     .sidebar {
@@ -36,6 +37,18 @@
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
     }
 
+    @media (max-width: 900px) {
+      .game-wrap {
+        flex-direction: column;
+        padding: 12px;
+      }
+
+      .sidebar {
+        width: 100%;
+        order: -1;
+      }
+    }
+
     .sidebar h2 {
       margin: 0;
       color: #f8fafc;
@@ -43,10 +56,45 @@
       letter-spacing: 0.03em;
     }
 
+    @media (max-width: 600px) {
+      .sidebar h2 {
+        font-size: 1.1rem;
+      }
+
+      .unit-card {
+        grid-template-columns: 50px 1fr;
+        padding: 8px;
+      }
+
+      .unit-icon {
+        width: 50px;
+        height: 50px;
+      }
+
+      .unit-details {
+        font-size: 0.8rem;
+      }
+
+      .unit-details strong {
+        font-size: 0.9rem;
+      }
+
+      .defend-btn {
+        padding: 10px 8px;
+        font-size: 0.88rem;
+      }
+    }
+
     .unit-box {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 10px;
+    }
+
+    @media (max-width: 600px) {
+      .unit-box {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+      }
     }
 
     .unit-card {
@@ -154,10 +202,28 @@
       touch-action: none;
     }
 
+    @media (max-width: 600px) {
+      canvas {
+        border-width: 2px;
+        border-radius: 12px;
+      }
+    }
+
     .info {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       gap: 12px;
+    }
+
+    @media (max-width: 600px) {
+      .info {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .info div {
+        min-height: 50px;
+        padding: 10px 12px;
+      }
     }
 
     .info div {
@@ -234,6 +300,37 @@
     .upgrade-btn:disabled {
       opacity: 0.55;
       cursor: not-allowed;
+    }
+
+    @media (max-width: 600px) {
+      .upgrade-btn {
+        padding: 14px 12px;
+        font-size: 0.9rem;
+        min-height: 44px;
+      }
+    }
+
+    .defend-btn {
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(59, 130, 246, 0.18);
+      color: #f8fafc;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: transform 0.18s ease, background 0.18s ease;
+      width: 100%;
+      margin-top: 6px;
+    }
+
+    .defend-btn:hover {
+      background: rgba(59, 130, 246, 0.28);
+      transform: translateY(-1px);
+    }
+
+    .defend-btn.active {
+      background: rgba(34, 197, 94, 0.28);
+      border-color: rgba(34, 197, 94, 0.4);
     }
   </style>
 </head>
@@ -350,10 +447,17 @@
       gameOver: false,
       message: 'Drag a unit to deploy to the battlefield.',
       spawnCooldowns: {},
+      defendModes: {},
     };
 
     let dragState = null;
     let lastTimestamp = 0;
+    let particles = [];
+    let screenShake = 0;
+    let damageNumbers = [];
+    let fpsCounter = 0;
+    let frameCount = 0;
+    let lastFpsTime = performance.now();
 
     const unitBox = document.getElementById('unitBox');
     const dragPreview = document.getElementById('dragPreview');
@@ -788,7 +892,17 @@
         </div>
       `;
 
-      card.append(icon, details);
+      const defendBtn = document.createElement('button');
+      defendBtn.className = 'defend-btn';
+      defendBtn.textContent = 'Defend';
+      defendBtn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        state.defendModes[type.id] = !state.defendModes[type.id];
+        defendBtn.classList.toggle('active', state.defendModes[type.id]);
+        state.message = `${type.name} defend mode: ${state.defendModes[type.id] ? 'ON' : 'OFF'}`;
+      });
+
+      card.append(icon, details, defendBtn);
       card.addEventListener('pointerdown', (event) => {
         event.preventDefault();
         const cooldown = state.spawnCooldowns[type.id] || 0;
@@ -886,11 +1000,13 @@
         damage: Math.round(type.damage * damageMultiplier),
         baseDamage: type.damage,
         weaponType: type.id,
+        isDefending: state.defendModes[type.id] || false,
       });
       state.money -= type.cost;
       state.moneyFloat -= type.cost;
       state.spawnCooldowns[type.id] = type.fireRate;
-      state.message = `${type.name} deployed to the left flank!`;
+      const mode = state.defendModes[type.id] ? ' in defend mode' : '';
+      state.message = `${type.name} deployed to the left flank${mode}!`;
       playEventSound('deploy');
     }
 
@@ -931,6 +1047,83 @@
       return event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
     }
 
+    function createParticle(x, y, vx, vy, color, life = 60) {
+      particles.push({
+        x, y, vx, vy, color, life, maxLife: life,
+        radius: 2 + Math.random() * 2
+      });
+    }
+
+    function createDamageNumber(x, y, damage, isCrit = false) {
+      damageNumbers.push({
+        x, y, damage, life: 120, maxLife: 120, isCrit
+      });
+    }
+
+    function triggerScreenShake(intensity = 6) {
+      screenShake = Math.max(screenShake, intensity);
+    }
+
+    function updateFPS() {
+      const now = performance.now();
+      frameCount++;
+      if (now - lastFpsTime >= 1000) {
+        fpsCounter = frameCount;
+        frameCount = 0;
+        lastFpsTime = now;
+      }
+    }
+
+    function updateParticles(delta) {
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.2;
+        p.life--;
+        if (p.life <= 0) particles.splice(i, 1);
+      }
+    }
+
+    function updateDamageNumbers(delta) {
+      for (let i = damageNumbers.length - 1; i >= 0; i--) {
+        const d = damageNumbers[i];
+        d.y -= 1.5;
+        d.life--;
+        if (d.life <= 0) damageNumbers.splice(i, 1);
+      }
+    }
+
+    function drawParticles() {
+      particles.forEach(p => {
+        const alpha = p.life / p.maxLife;
+        ctx.fillStyle = p.color.replace(')', `, ${alpha * 0.8})`).replace('rgb', 'rgba');
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    function drawDamageNumbers() {
+      damageNumbers.forEach(d => {
+        const alpha = d.life / d.maxLife;
+        const size = d.isCrit ? 24 : 16;
+        ctx.font = `bold ${size}px Arial`;
+        ctx.fillStyle = d.isCrit ? `rgba(255, 100, 100, ${alpha})` : `rgba(255, 200, 100, ${alpha})`;
+        ctx.textAlign = 'center';
+        ctx.fillText(d.damage, d.x, d.y);
+      });
+    }
+
+    function drawFPS() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+      ctx.fillRect(WIDTH - 110, 10, 100, 35);
+      ctx.fillStyle = '#00ff00';
+      ctx.font = 'bold 14px monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText(`FPS: ${fpsCounter}`, WIDTH - 100, 30);
+    }
+
     document.addEventListener('pointermove', (event) => {
       if (!dragState) return;
       updateDragPreviewPosition(event.clientX, event.clientY);
@@ -939,8 +1132,12 @@
     document.addEventListener('pointerup', (event) => {
       if (!dragState) return;
       const rect = canvas.getBoundingClientRect();
-      const x = event.clientX - rect.left;
-      const y = event.clientY - rect.top;
+      const visualX = event.clientX - rect.left;
+      const visualY = event.clientY - rect.top;
+      const scaleX = WIDTH / rect.width;
+      const scaleY = HEIGHT / rect.height;
+      const x = visualX * scaleX;
+      const y = visualY * scaleY;
       if (isMouseOverCanvas(event, rect)) {
         if (x > DEPLOY_ZONE_WIDTH) {
           state.message = 'Drop inside the left zone to deploy units.';
@@ -1321,6 +1518,10 @@
 
     function update(delta) {
       if (state.gameOver) return;
+      updateFPS();
+      if (screenShake > 0) screenShake *= 0.85;
+      updateParticles(delta);
+      updateDamageNumbers(delta);
       state.moneyFloat += PLAYER_INCOME * delta / 1000;
       state.money = Math.floor(state.moneyFloat);      Object.keys(state.spawnCooldowns).forEach((key) => {
         state.spawnCooldowns[key] -= delta;
@@ -1358,10 +1559,21 @@
           target.health -= unit.damage;
           unit.cooldown = unit.attackCooldown;
           unit.attackTimer = 200;
+          triggerScreenShake(3);
+          for (let i = 0; i < 6; i++) {
+            const angle = (Math.PI * 2 * i) / 6;
+            createParticle(target.x, target.y, Math.cos(angle) * 2, Math.sin(angle) * 2, 'rgb(255, 100, 100)', 50);
+          }
+          createDamageNumber(target.x, target.y - 20, unit.damage);
           state.message = `${unit.label} hit ${target.label || 'your unit'}!`;
           playEventSound('hit');
           if (target.health <= 0) {
             target.health = 0;
+            triggerScreenShake(5);
+            for (let i = 0; i < 12; i++) {
+              const angle = (Math.PI * 2 * i) / 12;
+              createParticle(target.x, target.y, Math.cos(angle) * 3, Math.sin(angle) * 3, 'rgb(255, 150, 100)', 70);
+            }
             state.message = `${target.label || 'Your unit'} was destroyed by CPU!`;
           }
         } else if (distance <= unit.range && unit.cooldown <= 0) {
@@ -1383,10 +1595,21 @@
           target.health -= unit.damage;
           unit.cooldown = unit.attackCooldown;
           unit.attackTimer = 200;
+          triggerScreenShake(2);
+          for (let i = 0; i < 6; i++) {
+            const angle = (Math.PI * 2 * i) / 6;
+            createParticle(target.x, target.y, Math.cos(angle) * 2.5, Math.sin(angle) * 2.5, 'rgb(100, 200, 255)', 50);
+          }
+          createDamageNumber(target.x, target.y - 20, unit.damage);
           state.message = `${unit.label} hit ${target.label || 'CPU unit'}!`;
           playEventSound('hit');
           if (target.health <= 0) {
             target.health = 0;
+            triggerScreenShake(4);
+            for (let i = 0; i < 12; i++) {
+              const angle = (Math.PI * 2 * i) / 12;
+              createParticle(target.x, target.y, Math.cos(angle) * 3.5, Math.sin(angle) * 3.5, 'rgb(100, 255, 150)', 70);
+            }
             state.moneyFloat += 22;
             state.money = Math.floor(state.moneyFloat);
             state.message = `${target.label || 'CPU unit'} was destroyed!`;
@@ -1422,14 +1645,25 @@
         if (Math.hypot(bullet.x - bullet.target.x, bullet.y - bullet.target.y) < 12) {
           bullet.dead = true;
           const splashRadius = bullet.isTowerBullet ? 42 : 12;
+          triggerScreenShake(bullet.isTowerBullet ? 4 : 2);
           const hitTargets = state.towers.concat(state.playerUnits, state.cpuUnits).filter((target) => {
             if (target.health <= 0 || target.team === bullet.team) return false;
             return Math.hypot(bullet.x - target.x, bullet.y - target.y) <= splashRadius;
           });
           hitTargets.forEach((target) => {
             target.health -= bullet.damage;
+            const particleColor = bullet.team === TEAM_PLAYER ? 'rgb(100, 200, 255)' : 'rgb(255, 100, 100)';
+            for (let i = 0; i < 8; i++) {
+              const angle = (Math.PI * 2 * i) / 8;
+              createParticle(bullet.x, bullet.y, Math.cos(angle) * 2.5, Math.sin(angle) * 2.5, particleColor, 50);
+            }
+            createDamageNumber(target.x, target.y - 25, bullet.damage);
             if (target.health <= 0) {
               target.health = 0;
+              for (let i = 0; i < 14; i++) {
+                const angle = (Math.PI * 2 * i) / 14;
+                createParticle(bullet.x, bullet.y, Math.cos(angle) * 3.5, Math.sin(angle) * 3.5, particleColor, 80);
+              }
               if (bullet.team === TEAM_PLAYER && target.team === TEAM_CPU) {
                 state.moneyFloat += 22;
                 state.money = Math.floor(state.moneyFloat);
@@ -1476,6 +1710,14 @@
     }
 
     function draw() {
+      ctx.save();
+
+      // Apply screen shake
+      if (screenShake > 0) {
+        const shake = Math.random() * screenShake * 2 - screenShake;
+        ctx.translate(shake, Math.random() * screenShake * 2 - screenShake);
+      }
+
       ctx.clearRect(0, 0, WIDTH, HEIGHT);
       ctx.fillStyle = '#121b2f';
       ctx.fillRect(0, 0, WIDTH, HEIGHT);
@@ -1506,6 +1748,11 @@
       state.playerUnits.forEach(drawUnit);
       state.cpuUnits.forEach(drawUnit);
       state.bullets.forEach(drawBullet);
+      drawParticles();
+      drawDamageNumbers();
+
+      ctx.restore();
+      drawFPS();
     }
 
     function loop(timestamp) {
