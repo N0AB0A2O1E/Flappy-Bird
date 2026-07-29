@@ -1601,30 +1601,31 @@
     });
 
     document.addEventListener('pointerup', e => {
-      if (!dragState) return;
-      const rect = canvas.getBoundingClientRect();
-      const visualX = e.clientX - rect.left;
-      const visualY = e.clientY - rect.top;
-      const scaleX = WIDTH / rect.width;
-      const scaleY = HEIGHT / rect.height;
-      const x = visualX * scaleX;
-      const y = visualY * scaleY;
+      try {
+        if (!dragState) return;
+        const rect = canvas.getBoundingClientRect();
+        const visualX = e.clientX - rect.left;
+        const visualY = e.clientY - rect.top;
+        const scaleX = WIDTH / rect.width;
+        const scaleY = HEIGHT / rect.height;
+        const x = visualX * scaleX;
+        const y = visualY * scaleY;
 
-      console.log('Pointerup:', { visualX, visualY, x, y, PLAYER_DEPLOY_WIDTH, inCanvas: e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom });
-
-      if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
-        if (x <= PLAYER_DEPLOY_WIDTH) {
-          console.log('Deploying unit at', x, y);
-          const unit = dragState.unit;
-          deployUnit(x, y, unit);
+        if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
+          if (x <= PLAYER_DEPLOY_WIDTH) {
+            const unit = dragState.unit;
+            deployUnit(x, y, unit);
+          } else {
+            state.status = 'Deploy on the left side!';
+          }
         } else {
-          state.status = 'Deploy on the left side!';
+          state.status = 'Drop on the battlefield!';
         }
-      } else {
-        state.status = 'Drop on the battlefield!';
+      } finally {
+        dragState = null;
+        const preview = document.getElementById('dragPreview');
+        if (preview) preview.style.display = 'none';
       }
-      dragState = null;
-      document.getElementById('dragPreview').style.display = 'none';
     });
 
     canvas.addEventListener('click', () => {
