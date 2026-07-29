@@ -11,7 +11,7 @@
         min-height: 100vh;
         display: grid;
         place-items: center;
-        background: linear-gradient(180deg, #87cefa 0%, #d8f2ff 100%);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
         font-family: Arial, sans-serif;
       }
 
@@ -31,9 +31,37 @@
         color: #1b4d2e;
         font-weight: 600;
       }
+
+      .pause-btn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        padding: 10px 16px;
+        background: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 14px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        display: none;
+        z-index: 1000;
+      }
+
+      .pause-btn:active {
+        transform: scale(0.95);
+      }
+
+      @media (max-width: 768px) {
+        .pause-btn {
+          display: block;
+        }
+      }
     </style>
   </head>
   <body>
+    <button class="pause-btn" id="pauseBtn">Pause</button>
     <div class="game-wrap">
       <canvas id="game" width="400" height="600"></canvas>
       <div class="instructions">Click or press space to flap</div>
@@ -142,6 +170,38 @@
         }
       }
 
+      function createParticle(x, y, vx, vy, color, life = 60) {
+        particles.push({
+          x, y, vx, vy, color, life, maxLife: life,
+          radius: 3 + Math.random() * 3
+        });
+      }
+
+      function updateParticles() {
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.15;
+          p.life--;
+          if (p.life <= 0) particles.splice(i, 1);
+        }
+      }
+
+      function drawParticles() {
+        particles.forEach(p => {
+          const alpha = p.life / p.maxLife;
+          ctx.fillStyle = p.color.replace(')', `, ${alpha})`).replace('rgb', 'rgba');
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      function triggerScreenShake(intensity = 8) {
+        screenShake = intensity;
+      }
+
       function getRandomTheme() {
         const available = themes.filter((theme) => theme !== currentTheme);
         return available[Math.floor(Math.random() * available.length)];
@@ -178,19 +238,23 @@
 
       function playScoreSound() {
         initAudio();
-        playTone(660, 0.08, 'sine', 0.15);
-        setTimeout(() => playTone(880, 0.08, 'sine', 0.12), 90);
+        const baseFreq = 440 + (Math.min(score, 100) / 100) * 220;
+        playTone(baseFreq, 0.08, 'sine', 0.15);
+        setTimeout(() => playTone(baseFreq * 1.5, 0.08, 'sine', 0.12), 90);
       }
 
       function playGameOverSound() {
         initAudio();
-        playTone(220, 0.24, 'square', 0.25);
+        playTone(220, 0.12, 'square', 0.25);
+        setTimeout(() => playTone(165, 0.12, 'square', 0.2), 130);
+        setTimeout(() => playTone(110, 0.24, 'square', 0.25), 260);
       }
       let bird = {
         x: 120,
         y: HEIGHT / 2,
         radius: 18,
-        velocity: 0
+        velocity: 0,
+        flapFrame: 0
       };
 
       let pipes = [];
@@ -204,6 +268,10 @@
       let motivationalMessage = '';
       let messageTimer = 0;
       let frame = 0;
+      let particles = [];
+      let screenShake = 0;
+      let comboMultiplier = 1;
+      let lastScoreFrame = 0;
 
       const motivationalMessages = {
         20: 'Nice! Keep it up!',
@@ -216,6 +284,7 @@
       function resetGame() {
         bird.y = HEIGHT / 2;
         bird.velocity = 0;
+        bird.flapFrame = 0;
         pipes = [];
         score = 0;
         gameOver = false;
@@ -226,8 +295,12 @@
         motivationalMessage = '';
         messageTimer = 0;
         frame = 0;
+        particles = [];
+        screenShake = 0;
+        comboMultiplier = 1;
         currentPipeSpeed = BASE_PIPE_SPEED;
         currentTheme = getRandomTheme();
+        document.getElementById('pauseBtn').textContent = 'Pause';
         playBackgroundMusic();
       }
 
@@ -249,7 +322,11 @@
         playBackgroundMusic();
         if (!gameOver) {
           bird.velocity = FLAP;
+          bird.flapFrame = 10;
           playFlapSound();
+          for (let i = 0; i < 3; i++) {
+            createParticle(bird.x - 15, bird.y + 10, -1 - Math.random() * 2, 1 - Math.random() * 2, 'rgb(255, 200, 100)', 40);
+          }
         }
       }
 
@@ -265,6 +342,10 @@
       }
 
       function update() {
+        updateParticles();
+        if (screenShake > 0) screenShake--;
+        if (bird.flapFrame > 0) bird.flapFrame--;
+
         if (!started || gameOver || paused) return;
 
         frame += 1;
@@ -282,6 +363,14 @@
           if (!pipe.passed && pipe.x + PIPE_WIDTH < bird.x) {
             pipe.passed = true;
             score += 1;
+            lastScoreFrame = frame;
+            comboMultiplier = Math.min(3, 1 + Math.floor((score - 1) / 20) * 0.25);
+
+            for (let j = 0; j < 8; j++) {
+              const angle = (Math.PI * 2 * j) / 8;
+              createParticle(bird.x, bird.y, Math.cos(angle) * 3, Math.sin(angle) * 3, 'rgb(255, 215, 0)', 50);
+            }
+
             if (score % 20 === 0 && score < 100) {
               motivationalMessage = motivationalMessages[score] || 'Keep going!';
               messageTimer = 180;
@@ -303,6 +392,11 @@
           if (hitPipe) {
             if (!gameOver) {
               playGameOverSound();
+              triggerScreenShake(12);
+              for (let j = 0; j < 12; j++) {
+                const angle = (Math.PI * 2 * j) / 12;
+                createParticle(bird.x, bird.y, Math.cos(angle) * 4, Math.sin(angle) * 4, 'rgb(255, 100, 100)', 60);
+              }
             }
             gameOver = true;
           }
@@ -315,6 +409,11 @@
         if (bird.y + bird.radius >= HEIGHT || bird.y - bird.radius <= 0) {
           if (!gameOver) {
             playGameOverSound();
+            triggerScreenShake(12);
+            for (let j = 0; j < 12; j++) {
+              const angle = (Math.PI * 2 * j) / 12;
+              createParticle(bird.x, bird.y, Math.cos(angle) * 4, Math.sin(angle) * 4, 'rgb(255, 100, 100)', 60);
+            }
           }
           gameOver = true;
         }
@@ -328,17 +427,34 @@
       }
 
       function drawBackground() {
-        ctx.fillStyle = currentTheme.sky;
+        const gradient = ctx.createLinearGradient(0, 0, 0, HEIGHT);
+        gradient.addColorStop(0, currentTheme.sky);
+        gradient.addColorStop(1, currentTheme.grass);
+        ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
         ctx.fillStyle = currentTheme.grass;
         ctx.fillRect(0, HEIGHT - 60, WIDTH, 60);
 
-        for (let i = 0; i < 8; i += 1) {
-          const x = (i * 80 + frame * 0.6) % (WIDTH + 80) - 40;
-          const y = 100 + (i % 3) * 70;
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+        ctx.fillRect(0, HEIGHT - 60, WIDTH, 2);
+
+        for (let i = 0; i < 12; i++) {
+          const x = (i * 60 + frame * 0.3) % (WIDTH + 60) - 30;
+          const y = 80 + (i % 2) * 60;
+          const size = 16 + (i % 3) * 6;
+
           ctx.fillStyle = currentTheme.cloud;
-          ctx.fillRect(x, y, 24, 8);
+          ctx.beginPath();
+          ctx.arc(x, y, size, 0, Math.PI * 2);
+          ctx.arc(x + size * 0.7, y - size * 0.3, size * 0.8, 0, Math.PI * 2);
+          ctx.arc(x - size * 0.7, y - size * 0.3, size * 0.8, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+          ctx.beginPath();
+          ctx.arc(x + size * 0.3, y - size * 0.2, size * 0.4, 0, Math.PI * 2);
+          ctx.fill();
         }
       }
 
@@ -348,107 +464,172 @@
       function drawBird() {
         ctx.save();
         ctx.translate(bird.x, bird.y);
-        ctx.rotate(Math.max(-0.55, Math.min(0.55, bird.velocity / 8)));
+        const rotation = Math.max(-0.55, Math.min(0.55, bird.velocity / 8));
+        ctx.rotate(rotation);
+
+        const flap = bird.flapFrame > 0 ? Math.sin((bird.flapFrame / 10) * Math.PI) * 0.15 : 0;
+        const scale = 1 + flap;
+        ctx.scale(scale, scale);
+
         const width = 80;
         const height = 80;
         ctx.drawImage(birdImage, -width / 2, -height / 2, width, height);
+
+        if (bird.flapFrame > 0) {
+          ctx.globalAlpha = bird.flapFrame / 10;
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+          ctx.beginPath();
+          ctx.arc(0, 0, width / 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
         ctx.restore();
       }
 
       function drawPipes() {
         pipes.forEach((pipe) => {
-          ctx.fillStyle = currentTheme.pipe;
+          const gradient = ctx.createLinearGradient(pipe.x, 0, pipe.x + PIPE_WIDTH, 0);
+          gradient.addColorStop(0, currentTheme.pipe);
+          gradient.addColorStop(0.5, currentTheme.pipeDark);
+          gradient.addColorStop(1, currentTheme.pipe);
+
+          ctx.fillStyle = gradient;
           ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.topHeight);
           ctx.fillRect(pipe.x, pipe.topHeight + PIPE_GAP, PIPE_WIDTH, HEIGHT - (pipe.topHeight + PIPE_GAP));
 
           ctx.fillStyle = currentTheme.pipeDark;
           ctx.fillRect(pipe.x - 4, 0, 8, pipe.topHeight);
           ctx.fillRect(pipe.x - 4, pipe.topHeight + PIPE_GAP, 8, HEIGHT - (pipe.topHeight + PIPE_GAP));
+
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+          ctx.fillRect(pipe.x + 2, 0, 3, pipe.topHeight);
+          ctx.fillRect(pipe.x + 2, pipe.topHeight + PIPE_GAP, 3, HEIGHT - (pipe.topHeight + PIPE_GAP));
         });
       }
 
       function drawScore() {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.fillRect(10, 10, 200, 100);
+
         ctx.fillStyle = currentTheme.text;
         ctx.font = 'bold 26px Arial';
         ctx.fillText(`Score: ${score}`, 20, 40);
         ctx.fillText(`Best: ${bestScore}`, 20, 72);
+
+        if (comboMultiplier > 1) {
+          ctx.font = 'bold 20px Arial';
+          ctx.fillStyle = 'rgb(255, 215, 0)';
+          ctx.fillText(`Combo: ${comboMultiplier.toFixed(1)}x`, 20, 102);
+        }
+
         if (motivationalMessage) {
+          ctx.fillStyle = currentTheme.text;
           ctx.font = 'bold 18px Arial';
-          ctx.fillText(motivationalMessage, 20, 110);
+          ctx.textAlign = 'center';
+          const lines = motivationalMessage.split('\n');
+          lines.forEach((line, idx) => {
+            ctx.fillText(line, WIDTH / 2, 150 + idx * 25);
+          });
+          ctx.textAlign = 'left';
         }
       }
 
       function drawOverlay() {
         if (!started) {
-          const buttonWidth = 120;
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+          ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+          ctx.save();
+          ctx.textAlign = 'center';
+          ctx.fillStyle = currentTheme.text;
+          ctx.font = 'bold 48px Arial';
+          ctx.fillText('Flappy Bird', WIDTH / 2, 180);
+
+          ctx.font = '18px Arial';
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+          ctx.fillText('Click to play', WIDTH / 2, 240);
+          ctx.restore();
+
+          const buttonWidth = 140;
           const buttonHeight = 50;
           const buttonX = (WIDTH - buttonWidth) / 2;
           const buttonY = 260;
 
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-          ctx.fillRect(0, 0, WIDTH, HEIGHT);
-
-          ctx.save();
-          ctx.fillStyle = currentTheme.text;
-          ctx.font = 'bold 32px Arial';
-          ctx.textAlign = 'center';
-          ctx.fillText('Flappy Bird', WIDTH / 2, 220);
-          ctx.restore();
-
-          ctx.fillStyle = '#43a047';
+          ctx.fillStyle = '#4caf50';
           ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
-          ctx.strokeStyle = '#1b5e20';
-          ctx.lineWidth = 4;
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+          ctx.shadowBlur = 10;
+          ctx.strokeStyle = '#2e7d32';
+          ctx.lineWidth = 3;
           ctx.strokeRect(buttonX, buttonY, buttonWidth, buttonHeight);
 
           ctx.fillStyle = '#ffffff';
           ctx.font = 'bold 24px Arial';
-          ctx.fillText('Play', buttonX + 30, buttonY + 33);
+          ctx.textAlign = 'center';
+          ctx.fillText('Play', WIDTH / 2, buttonY + 35);
 
-          ctx.fillStyle = currentTheme.text;
-          ctx.font = '18px Arial';
-          ctx.fillText('Click the green button to start', 76, 340);
+          ctx.font = '14px Arial';
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+          ctx.textAlign = 'center';
+          ctx.fillText('Space / Click to flap', WIDTH / 2, HEIGHT - 50);
         } else if (paused) {
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
           ctx.fillRect(0, 0, WIDTH, HEIGHT);
           ctx.fillStyle = currentTheme.text;
-          ctx.font = 'bold 32px Arial';
-          ctx.fillText('Paused', 140, 250);
-          ctx.font = '20px Arial';
-          ctx.fillText('Press Escape to resume', 94, 290);
+          ctx.font = 'bold 48px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('Paused', WIDTH / 2, 250);
+          ctx.font = '18px Arial';
+          ctx.fillText('Press Escape to resume', WIDTH / 2, 310);
+          ctx.textAlign = 'left';
         } else if (finished) {
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
           ctx.fillRect(0, 0, WIDTH, HEIGHT);
+          ctx.fillStyle = 'rgb(255, 215, 0)';
+          ctx.font = 'bold 48px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('🎉 You Win! 🎉', WIDTH / 2, 180);
           ctx.fillStyle = currentTheme.text;
-          ctx.font = 'bold 32px Arial';
-          ctx.fillText('You Win!', 150, 220);
+          ctx.font = 'bold 28px Arial';
+          ctx.fillText(`Score: ${score}`, WIDTH / 2, 240);
           ctx.font = '20px Arial';
-          ctx.fillText(`Score: ${score}`, 150, 260);
-          ctx.fillText(`Best: ${bestScore}`, 145, 290);
-          ctx.fillText('Press R to restart', 120, 330);
-          ctx.fillText('Press E for endless mode', 100, 360);
-          drawOverlayButton('Restart', 140, 380, 120, 40);
-          drawOverlayButton('Menu', 140, 430, 120, 40);
+          ctx.fillText(`Best: ${bestScore}`, WIDTH / 2, 275);
+          drawOverlayButton('Restart', WIDTH / 2 - 70, 330, 140, 45);
+          drawOverlayButton('Menu', WIDTH / 2 - 70, 390, 140, 45);
+          ctx.textAlign = 'left';
         } else if (gameOver) {
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
           ctx.fillRect(0, 0, WIDTH, HEIGHT);
+          ctx.fillStyle = 'rgb(255, 100, 100)';
+          ctx.font = 'bold 48px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('Game Over', WIDTH / 2, 180);
           ctx.fillStyle = currentTheme.text;
-          ctx.font = 'bold 32px Arial';
-          ctx.fillText('Game Over', 120, 220);
+          ctx.font = 'bold 28px Arial';
+          ctx.fillText(`Score: ${score}`, WIDTH / 2, 240);
           ctx.font = '20px Arial';
-          ctx.fillText(`Score: ${score}`, 150, 270);
-          ctx.fillText(`Best: ${bestScore}`, 145, 300);
-          ctx.fillText('Press R to reset', 120, 340);
-          drawOverlayButton('Restart', 140, 380, 120, 40);
-          drawOverlayButton('Menu', 140, 430, 120, 40);
+          ctx.fillText(`Best: ${bestScore}`, WIDTH / 2, 275);
+          drawOverlayButton('Restart', WIDTH / 2 - 70, 330, 140, 45);
+          drawOverlayButton('Menu', WIDTH / 2 - 70, 390, 140, 45);
+          ctx.textAlign = 'left';
         }
       }
 
       function draw() {
+        ctx.save();
+        if (screenShake > 0) {
+          const shake = screenShake * 2;
+          const offsetX = (Math.random() - 0.5) * shake;
+          const offsetY = (Math.random() - 0.5) * shake;
+          ctx.translate(offsetX, offsetY);
+        }
+
         drawBackground();
         drawPipes();
         drawBird();
+        drawParticles();
         drawScore();
+
+        ctx.restore();
         drawOverlay();
       }
 
@@ -540,15 +721,24 @@
       }
 
       function drawOverlayButton(label, x, y, width, height) {
-        ctx.fillStyle = '#43a047';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        ctx.shadowBlur = 12;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 2;
+
+        ctx.fillStyle = '#4caf50';
         ctx.fillRect(x, y, width, height);
-        ctx.strokeStyle = '#1b5e20';
+
+        ctx.shadowColor = 'transparent';
+        ctx.strokeStyle = '#2e7d32';
         ctx.lineWidth = 3;
         ctx.strokeRect(x, y, width, height);
+
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 18px Arial';
-        const textWidth = ctx.measureText(label).width;
-        ctx.fillText(label, x + (width - textWidth) / 2, y + (height + 10) / 2);
+        ctx.textAlign = 'center';
+        ctx.fillText(label, x + width / 2, y + height / 2 + 6);
+        ctx.textAlign = 'left';
       }
 
       canvas.addEventListener('click', (event) => {
@@ -611,6 +801,14 @@
 
         flap();
       }, { passive: false });
+
+      const pauseBtn = document.getElementById('pauseBtn');
+      pauseBtn.addEventListener('click', () => {
+        if (started && !gameOver) {
+          paused = !paused;
+          pauseBtn.textContent = paused ? 'Resume' : 'Pause';
+        }
+      });
 
       loop();
     </script>
