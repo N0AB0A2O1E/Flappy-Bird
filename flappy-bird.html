@@ -33,7 +33,7 @@
       }
 
       .pause-btn {
-        position: absolute;
+        position: fixed;
         top: 20px;
         right: 20px;
         padding: 10px 16px;
@@ -45,18 +45,15 @@
         cursor: pointer;
         font-size: 14px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        display: none;
         z-index: 1000;
+      }
+
+      .pause-btn:hover {
+        background: #45a049;
       }
 
       .pause-btn:active {
         transform: scale(0.95);
-      }
-
-      @media (max-width: 768px) {
-        .pause-btn {
-          display: block;
-        }
       }
     </style>
   </head>
@@ -507,18 +504,20 @@
       }
 
       function drawScore() {
+        ctx.save();
         ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-        ctx.fillRect(10, 10, 200, 100);
+        ctx.fillRect(10, 10, 200, 110);
 
         ctx.fillStyle = currentTheme.text;
         ctx.font = 'bold 26px Arial';
-        ctx.fillText(`Score: ${score}`, 20, 40);
-        ctx.fillText(`Best: ${bestScore}`, 20, 72);
+        ctx.textAlign = 'left';
+        ctx.fillText(`Score: ${score}`, 25, 45);
+        ctx.fillText(`Best: ${bestScore}`, 25, 75);
 
         if (comboMultiplier > 1) {
           ctx.font = 'bold 20px Arial';
           ctx.fillStyle = 'rgb(255, 215, 0)';
-          ctx.fillText(`Combo: ${comboMultiplier.toFixed(1)}x`, 20, 102);
+          ctx.fillText(`Combo: ${comboMultiplier.toFixed(1)}x`, 25, 105);
         }
 
         if (motivationalMessage) {
@@ -529,8 +528,8 @@
           lines.forEach((line, idx) => {
             ctx.fillText(line, WIDTH / 2, 150 + idx * 25);
           });
-          ctx.textAlign = 'left';
         }
+        ctx.restore();
       }
 
       function drawOverlay() {
