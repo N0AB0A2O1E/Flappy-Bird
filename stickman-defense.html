@@ -1513,8 +1513,21 @@
       document.getElementById('loadBtn').style.display = 'block';
     }
 
-    document.getElementById('playBtn').addEventListener('click', startGame);
-    document.getElementById('loadBtn').addEventListener('click', loadGameStart);
+    const playBtn = document.getElementById('playBtn');
+    const loadBtn = document.getElementById('loadBtn');
+
+    if (playBtn) {
+      playBtn.addEventListener('click', () => {
+        console.log('Play button clicked');
+        startGame();
+      });
+    } else {
+      console.error('Play button not found');
+    }
+
+    if (loadBtn) {
+      loadBtn.addEventListener('click', loadGameStart);
+    }
 
     // Auto-save every 30 seconds during gameplay
     setInterval(() => {
