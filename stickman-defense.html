@@ -595,36 +595,41 @@
       switch (name) {
         case 'deploy':
           playSound([
-            { freq: 523, vol: 0.05, type: 'sine' },
-            { freq: 659, vol: 0.03, type: 'sine' }
+            { freq: 440, vol: 0.012, type: 'sine' },
+            { freq: 554, vol: 0.012, type: 'sine' }
           ], 0.08);
           break;
         case 'hit':
-          playSound([{ freq: 350, vol: 0.03, type: 'sine' }], 0.04);
+          playSound([
+            { freq: 300, vol: 0.01, type: 'square' },
+            { freq: 150, vol: 0.008, type: 'sine' }
+          ], 0.04);
           break;
         case 'enemyDeploy':
           playSound([
-            { freq: 392, vol: 0.04, type: 'sine' },
-            { freq: 523, vol: 0.03, type: 'sine' }
-          ], 0.07);
+            { freq: 220, vol: 0.012, type: 'sine' },
+            { freq: 330, vol: 0.01, type: 'triangle' }
+          ], 0.06);
           break;
         case 'shoot':
-          // Muted shoot sound
-          playSound([{ freq: 600, vol: 0.02, type: 'sine' }], 0.03);
+          playSound([
+            { freq: 800, vol: 0.008, type: 'sine' },
+            { freq: 400, vol: 0.006, type: 'sine' }
+          ], 0.03);
           break;
         case 'upgrade':
           playSound([
-            { freq: 523, vol: 0.04 },
-            { freq: 659, vol: 0.04 },
-            { freq: 784, vol: 0.04 }
-          ], 0.1);
+            { freq: 523, vol: 0.012, type: 'sine' },
+            { freq: 659, vol: 0.012, type: 'sine' },
+            { freq: 784, vol: 0.012, type: 'sine' }
+          ], 0.12);
           break;
         case 'gameover':
           playSound([
-            { freq: 349, vol: 0.05 },
-            { freq: 261, vol: 0.04 },
-            { freq: 195, vol: 0.03 }
-          ], 0.2);
+            { freq: 330, vol: 0.01, type: 'sine' },
+            { freq: 220, vol: 0.012, type: 'sine' },
+            { freq: 110, vol: 0.01, type: 'sine' }
+          ], 0.18);
           break;
       }
     }
