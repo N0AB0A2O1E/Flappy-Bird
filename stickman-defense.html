@@ -496,7 +496,10 @@
       </div>
 
       <p class="footer">Made with strategy & stickmen</p>
-      <p style="color: #64748b; font-size: 0.75rem; margin: 5px 0 0 0;">Version 1.0</p>
+      <div style="display: flex; align-items: center; gap: 8px; margin: 5px 0 0 0;">
+        <p id="versionDisplay" style="color: #64748b; font-size: 0.75rem; margin: 0;">Version 1.0.0</p>
+        <button id="patchBtn" class="play-btn" style="padding: 4px 8px; font-size: 0.7rem;">Patch</button>
+      </div>
     </div>
   </div>
 
@@ -507,6 +510,21 @@
       <div class="upgrade-section">
         <button id="upgradeBtn" class="upgrade-btn">⚡ Upgrade Weapons - <span id="upgradeCost">$150</span></button>
         <button id="upgradeTowerBtn" class="upgrade-btn">🏰 Upgrade Towers - <span id="upgradeTowerCost">$200</span></button>
+
+        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(148, 163, 184, 0.2);">
+          <label style="font-size: 0.8rem; color: #94a3b8; display: block; margin-bottom: 6px;">Unit Upgrades</label>
+          <select id="unitSelect" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid rgba(148, 163, 184, 0.3); background: rgba(51, 65, 85, 0.5); color: #f1f5f9; font-size: 0.8rem; margin-bottom: 6px;">
+            <option value="">Select Unit</option>
+          </select>
+          <select id="upgradeTypeSelect" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid rgba(148, 163, 184, 0.3); background: rgba(51, 65, 85, 0.5); color: #f1f5f9; font-size: 0.8rem; margin-bottom: 6px;">
+            <option value="">Select Upgrade</option>
+            <option value="damage">💥 Damage</option>
+            <option value="health">❤️ Health</option>
+            <option value="range">🎯 Range</option>
+            <option value="fireRate">⚡ Attack Speed</option>
+          </select>
+          <button id="unitUpgradeBtn" class="upgrade-btn" style="width: 100%;">Upgrade - <span id="unitUpgradeCost">$75</span></button>
+        </div>
       </div>
     </div>
 
@@ -620,6 +638,123 @@
 
     let gamePaused = true; // Game starts paused in menu
 
+    // Version management and changelog
+    const CHANGELOG = [
+      { version: '1.0.0', changes: ['Initial game release', 'Unit deployment system', 'Tower defense mechanics'] },
+      { version: '1.0.1', changes: ['Added FPS counter', 'Implemented particle effect system', 'Added floating damage numbers', 'Added screen shake on hits'] },
+      { version: '1.0.2', changes: ['Fixed duplicate attackRecoil variable declaration', 'Fixed pause button visibility', 'Fixed start game button event listener'] },
+      { version: '1.0.3', changes: ['Fixed unit deployment drag-and-drop functionality', 'Removed problematic sfx(deploy) call', 'Fixed defendModes initialization bug'] },
+      { version: '1.0.4', changes: ['Units now prioritize attacking towers', 'Added tower targeting logic', 'Units focus on enemy towers first'] },
+      { version: '1.0.5', changes: ['Added defend mode visual indicator on button', 'Defend button shows ON/OFF state', 'Added shield circle around defending units'] },
+      { version: '1.0.6', changes: ['Added debug logging for unit attacks', 'Added version tracking system', 'Added patch notes display'] },
+    ];
+
+    function getVersion() {
+      const stored = localStorage.getItem('gameVersion');
+      const validVersions = CHANGELOG.map(v => v.version);
+      if (stored && validVersions.includes(stored)) {
+        return stored;
+      }
+      const latestVersion = CHANGELOG[CHANGELOG.length - 1].version;
+      localStorage.setItem('gameVersion', latestVersion);
+      return latestVersion;
+    }
+
+    function updateVersionDisplay() {
+      const version = getVersion();
+      document.getElementById('versionDisplay').textContent = `Version ${version}`;
+    }
+
+    function showPatchNotes() {
+      try {
+        console.log('showPatchNotes called');
+        const version = getVersion();
+        console.log('Current version:', version);
+        const versionData = CHANGELOG.find(v => v.version === version);
+        console.log('Version data:', versionData);
+        if (!versionData) {
+          console.log('No version data found');
+          return;
+        }
+
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+      `;
+
+      const content = document.createElement('div');
+      content.style.cssText = `
+        background: #1e293b;
+        border: 2px solid #0ea5e9;
+        border-radius: 12px;
+        padding: 24px;
+        max-width: 500px;
+        max-height: 80vh;
+        overflow-y: auto;
+        color: #e2e8f0;
+      `;
+
+      let html = `<h2 style="margin: 0 0 16px 0; color: #0ea5e9;">Patch Notes</h2>`;
+      CHANGELOG.forEach(entry => {
+        const isCurrentVersion = entry.version === version;
+        html += `
+          <div style="margin-bottom: 16px; padding: 12px; background: ${isCurrentVersion ? 'rgba(10, 165, 233, 0.2)' : 'rgba(51, 65, 85, 0.5)'}; border-radius: 8px; border-left: 3px solid ${isCurrentVersion ? '#0ea5e9' : '#64748b'};">
+            <strong style="color: ${isCurrentVersion ? '#0ea5e9' : '#cbd5e1'};">v${entry.version}${isCurrentVersion ? ' (Current)' : ''}</strong>
+            <ul style="margin: 8px 0 0 16px; padding: 0;">
+              ${entry.changes.map(change => `<li style="margin: 4px 0; color: #cbd5e1;">${change}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      });
+
+      content.innerHTML = html;
+
+      const closeBtn = document.createElement('button');
+      closeBtn.textContent = 'Close';
+      closeBtn.style.cssText = `
+        width: 100%;
+        padding: 10px;
+        margin-top: 16px;
+        background: #0ea5e9;
+        border: none;
+        border-radius: 6px;
+        color: white;
+        cursor: pointer;
+        font-weight: bold;
+      `;
+      closeBtn.addEventListener('click', () => modal.remove());
+      content.appendChild(closeBtn);
+
+      modal.appendChild(content);
+      document.body.appendChild(modal);
+      console.log('Modal appended to body');
+
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          console.log('Modal background clicked');
+          modal.remove();
+        }
+      });
+      } catch (err) {
+        console.error('Error in showPatchNotes:', err);
+      }
+    }
+
+    function patchVersion() {
+      showPatchNotes();
+    }
+
+    updateVersionDisplay();
+
     const state = {
       units: [],
       enemies: [],
@@ -650,6 +785,7 @@
       gameOver: false,
       status: 'Ready',
       spawnCooldowns: {},
+      defendModes: {},
     };
 
     let dragState = null;
@@ -657,6 +793,11 @@
     let fpsCounter = 0;
     let frameCount = 0;
     let lastFpsTime = performance.now();
+
+    const unitUpgrades = {}; // Track upgrades per unit: { unitId: { damage: 0, health: 0, range: 0, fireRate: 0 } }
+    UNITS.forEach(u => {
+      unitUpgrades[u.id] = { damage: 0, health: 0, range: 0, fireRate: 0 };
+    });
 
     const PLAYER_INCOME = 55;
     const ENEMY_INCOME = 55;
@@ -736,6 +877,7 @@
         playerKills: state.playerKills,
         upgradeLevel: state.upgradeLevel,
         towerUpgradeLevel: state.towerUpgradeLevel,
+        unitUpgrades: unitUpgrades,
       };
       localStorage.setItem('stickmanDefenseSave', JSON.stringify(gameData));
       state.status = 'Game saved!';
@@ -754,6 +896,11 @@
         state.upgradeCost = 150 + state.upgradeLevel * 100;
         state.towerUpgradeLevel = gameData.towerUpgradeLevel;
         state.towerUpgradeCost = 200 + state.towerUpgradeLevel * 150;
+        if (gameData.unitUpgrades) {
+          Object.keys(gameData.unitUpgrades).forEach(unitId => {
+            unitUpgrades[unitId] = gameData.unitUpgrades[unitId];
+          });
+        }
         return true;
       }
       return false;
@@ -842,6 +989,7 @@
         e.stopPropagation();
         state.defendModes[unit.id] = !state.defendModes[unit.id];
         defendBtn.classList.toggle('active', state.defendModes[unit.id]);
+        defendBtn.textContent = state.defendModes[unit.id] ? '🛡️ Defend ON' : '🛡️ Defend';
         state.status = `${unit.name} defend mode: ${state.defendModes[unit.id] ? 'ON' : 'OFF'}`;
       });
 
@@ -867,21 +1015,41 @@
     }
 
     function deployUnit(x, y, unit) {
-      const posY = Math.max(40, Math.min(HEIGHT - 40, y));
-      state.units.push({
-        x, y: posY, speed: 1.5 + state.wave * 0.03,
-        walkPhase: Math.random() * Math.PI * 2,
-        range: unit.range, fireRate: unit.fireRate, cooldown: 0, attackTimer: 0,
-        health: unit.health * 10, maxHealth: unit.health * 10,
-        damage: unit.damage, baseDamage: unit.damage, id: unit.id,
-        name: unit.name, color: unit.color, team: 'player', icon: unit.icon,
-        isDefending: state.defendModes[unit.id] || false,
-      });
-      state.money -= unit.cost;
-      state.moneyFloat -= unit.cost;
-      state.spawnCooldowns[unit.id] = unit.spawnCooldown;
-      const mode = state.defendModes[unit.id] ? ' in defend mode' : '';
-      state.status = `${unit.name} deployed${mode}!`;
+      try {
+        console.log('deployUnit called with', {x, y, unit: unit.name});
+        const posY = Math.max(40, Math.min(HEIGHT - 40, y));
+        console.log('posY calculated:', posY);
+
+        const upgrades = unitUpgrades[unit.id];
+        const damageBonus = getStatBonus(unit.id, 'damage');
+        const healthBonus = getStatBonus(unit.id, 'health');
+        const rangeBonus = getStatBonus(unit.id, 'range');
+        const fireRateBonus = getStatBonus(unit.id, 'fireRate');
+
+        const newUnit = {
+          x, y: posY, speed: 1.5 + state.wave * 0.03,
+          walkPhase: Math.random() * Math.PI * 2,
+          range: unit.range + rangeBonus, fireRate: Math.max(50, unit.fireRate - fireRateBonus), cooldown: 0, attackTimer: 0,
+          health: (unit.health * 10) + healthBonus, maxHealth: (unit.health * 10) + healthBonus,
+          damage: unit.damage + damageBonus, baseDamage: unit.damage + damageBonus, id: unit.id,
+          name: unit.name, color: unit.color, team: 'player', icon: unit.icon,
+          isDefending: state.defendModes[unit.id] || false,
+        };
+        console.log('newUnit object created:', newUnit);
+
+        state.units.push(newUnit);
+        console.log('Unit pushed to state.units');
+
+        state.money -= unit.cost;
+        state.moneyFloat -= unit.cost;
+        state.spawnCooldowns[unit.id] = unit.spawnCooldown;
+        const mode = state.defendModes[unit.id] ? ' in defend mode' : '';
+        state.status = `${unit.name} deployed${mode}!`;
+        console.log('deployUnit complete, unit:', unit.name);
+      } catch (err) {
+        console.error('Error in deployUnit:', err);
+        throw err;
+      }
     }
 
     function drawStickman(x, y, color, scale = 1, phase = 0, isAttacking = false, attackPct = 0, isHit = false) {
@@ -1163,7 +1331,7 @@
         state.towers.filter(t => t.team === 'enemy' && t.health > 0) :
         state.towers.filter(t => t.team === 'player' && t.health > 0);
 
-      // Check towers first if in range
+      // Prioritize towers in range first
       towers.forEach(t => {
         if (t.health <= 0) return;
         const dist = Math.hypot(t.x - unit.x, t.y - unit.y);
@@ -1173,9 +1341,24 @@
         }
       });
 
-      // If no tower in range, check enemies
+      // If tower in range found, return it immediately
+      if (nearest !== null) {
+        return { target: nearest, dist: nearestDist };
+      }
+
+      // Otherwise, check enemies within range
+      enemies.forEach(t => {
+        if (t.health <= 0) return;
+        const dist = Math.hypot(t.x - unit.x, t.y - unit.y);
+        if (dist <= unit.range && dist < nearestDist) {
+          nearestDist = dist;
+          nearest = t;
+        }
+      });
+
+      // If still no target in range, look for closest target regardless of range (prioritize towers)
       if (nearest === null) {
-        enemies.forEach(t => {
+        towers.forEach(t => {
           if (t.health <= 0) return;
           const dist = Math.hypot(t.x - unit.x, t.y - unit.y);
           if (dist < nearestDist) {
@@ -1185,9 +1368,9 @@
         });
       }
 
-      // If still no target, check towers even if out of range
+      // If still no target, look for enemies out of range
       if (nearest === null) {
-        towers.forEach(t => {
+        enemies.forEach(t => {
           if (t.health <= 0) return;
           const dist = Math.hypot(t.x - unit.x, t.y - unit.y);
           if (dist < nearestDist) {
@@ -1266,6 +1449,7 @@
           }
           // Attack when in range
           if (dist <= u.range && u.cooldown <= 0) {
+            console.log(`${u.name} attacking ${target.type || 'unit'} at distance ${dist.toFixed(1)}`);
             state.bullets.push({ x: u.x, y: u.y, tx: target, damage: u.damage, team: 'player' });
             u.cooldown = u.fireRate;
             u.attackTimer = 200;
@@ -1454,6 +1638,21 @@
         const attackPct = isAttacking ? u.attackTimer / 200 : 0;
         drawStickman(u.x, u.y, u.color, 1, u.walkPhase, isAttacking, attackPct, false);
         drawWeapon(u.x, u.y, u.color, u.id, isAttacking, attackPct, u.walkPhase);
+
+        // Draw defend mode indicator
+        if (u.isDefending) {
+          ctx.strokeStyle = '#22c55e';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(u.x, u.y, 35, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.fillStyle = '#22c55e';
+          ctx.font = 'bold 10px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText('DEFEND', u.x, u.y - 38);
+        }
       });
 
       state.enemies.forEach(u => {
@@ -1527,6 +1726,19 @@
       loadBtn.addEventListener('click', loadGameStart);
     }
 
+    const patchBtn = document.getElementById('patchBtn');
+    if (patchBtn) {
+      console.log('Patch button found, adding listener');
+      patchBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('Patch button clicked');
+        showPatchNotes();
+      });
+    } else {
+      console.error('Patch button not found!');
+    }
+
     // Auto-save every 30 seconds during gameplay
     setInterval(() => {
       if (!gamePaused && !state.gameOver) {
@@ -1559,6 +1771,101 @@
 
     document.getElementById('unitsGrid').appendChild(document.createElement('div')).style.display = 'none';
     UNITS.forEach(u => document.getElementById('unitsGrid').appendChild(createUnitButton(u)));
+
+    // Unit upgrade system
+    function getUpgradeCost(unitId, statType) {
+      const level = unitUpgrades[unitId][statType];
+      return 300 + level * 250;
+    }
+
+    function getStatBonus(unitId, statType) {
+      const level = unitUpgrades[unitId][statType];
+      switch (statType) {
+        case 'damage': return Math.round(level * 5);
+        case 'health': return level * 10;
+        case 'range': return level * 15;
+        case 'fireRate': return level * 30; // Reduces fireRate (faster attacks)
+        default: return 0;
+      }
+    }
+
+    function applyUnitUpgrades() {
+      state.units.forEach(u => {
+        const upgrades = unitUpgrades[u.id];
+        u.damage = u.baseDamage + getStatBonus(u.id, 'damage');
+        u.health = (UNITS.find(unit => unit.id === u.id).health * 10) + getStatBonus(u.id, 'health');
+        u.maxHealth = u.health;
+        u.range = (UNITS.find(unit => unit.id === u.id).range) + getStatBonus(u.id, 'range');
+        u.fireRate = Math.max(50, (UNITS.find(unit => unit.id === u.id).fireRate) - getStatBonus(u.id, 'fireRate'));
+      });
+    }
+
+    function updateUnitSelectDropdown() {
+      const unitSelect = document.getElementById('unitSelect');
+      unitSelect.innerHTML = '<option value="">Select Unit</option>';
+      UNITS.forEach(u => {
+        const option = document.createElement('option');
+        option.value = u.id;
+        option.textContent = `${u.icon} ${u.name}`;
+        unitSelect.appendChild(option);
+      });
+    }
+
+    function updateUpgradeCost() {
+      const unitId = parseInt(document.getElementById('unitSelect').value);
+      const upgradeType = document.getElementById('upgradeTypeSelect').value;
+      const costBtn = document.getElementById('unitUpgradeBtn');
+
+      if (!unitId || !upgradeType) {
+        costBtn.disabled = true;
+        document.getElementById('unitUpgradeCost').textContent = '$0';
+        return;
+      }
+
+      const cost = getUpgradeCost(unitId, upgradeType);
+      const level = unitUpgrades[unitId][upgradeType];
+      const unit = UNITS.find(u => u.id === unitId);
+
+      document.getElementById('unitUpgradeCost').textContent = `$${cost}`;
+      costBtn.disabled = state.money < cost;
+
+      const stats = {
+        damage: `+${getStatBonus(unitId, upgradeType)} dmg`,
+        health: `+${getStatBonus(unitId, upgradeType)} hp`,
+        range: `+${getStatBonus(unitId, upgradeType)} rng`,
+        fireRate: `-${getStatBonus(unitId, upgradeType)}ms`
+      };
+
+      costBtn.title = `Level ${level} → ${level + 1}: ${stats[upgradeType]}`;
+    }
+
+    updateUnitSelectDropdown();
+
+    document.getElementById('unitSelect').addEventListener('change', updateUpgradeCost);
+    document.getElementById('upgradeTypeSelect').addEventListener('change', updateUpgradeCost);
+
+    document.getElementById('unitUpgradeBtn').addEventListener('click', () => {
+      const unitId = parseInt(document.getElementById('unitSelect').value);
+      const upgradeType = document.getElementById('upgradeTypeSelect').value;
+
+      if (!unitId || !upgradeType) return;
+
+      const cost = getUpgradeCost(unitId, upgradeType);
+      if (state.money >= cost) {
+        state.money -= cost;
+        state.moneyFloat -= cost;
+        unitUpgrades[unitId][upgradeType]++;
+
+        const unit = UNITS.find(u => u.id === unitId);
+        const statNames = { damage: 'Damage', health: 'Health', range: 'Range', fireRate: 'Speed' };
+        state.status = `${unit.name} ${statNames[upgradeType]} upgraded!`;
+
+        applyUnitUpgrades();
+        updateUpgradeCost();
+        updateUI();
+        sfx('upgrade');
+      }
+    });
 
     document.getElementById('upgradeBtn').addEventListener('click', () => {
       if (state.money >= state.upgradeCost) {
