@@ -35,15 +35,17 @@
       backdrop-filter: blur(10px);
       border: 1px solid rgba(148, 163, 184, 0.2);
       border-radius: 16px;
-      padding: 16px;
+      padding: 12px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 8px;
       height: fit-content;
+      max-height: 90vh;
+      overflow-y: auto;
     }
 
     .sidebar h1 {
-      font-size: 1.3rem;
+      font-size: 1.1rem;
       font-weight: 700;
       color: #f1f5f9;
       letter-spacing: -0.02em;
@@ -58,11 +60,11 @@
 
     .unit-btn {
       display: grid;
-      grid-template-columns: 40px 1fr;
-      gap: 8px;
+      grid-template-columns: 36px 1fr;
+      gap: 6px;
       align-items: flex-start;
-      padding: 8px;
-      border-radius: 10px;
+      padding: 6px;
+      border-radius: 8px;
       border: 1px solid rgba(148, 163, 184, 0.2);
       background: rgba(51, 65, 85, 0.5);
       cursor: grab;
@@ -88,12 +90,12 @@
     }
 
     .unit-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 8px;
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
       display: grid;
       place-items: center;
-      font-size: 20px;
+      font-size: 18px;
       line-height: 1;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
@@ -105,34 +107,34 @@
     }
 
     .unit-info h3 {
-      font-size: 0.85rem;
+      font-size: 0.75rem;
       color: #f1f5f9;
       margin: 0;
       font-weight: 600;
     }
 
     .unit-info p {
-      font-size: 0.7rem;
+      font-size: 0.65rem;
       color: #94a3b8;
       margin: 0;
-      line-height: 1;
+      line-height: 0.95;
     }
 
     .upgrade-section {
       border-top: 1px solid rgba(148, 163, 184, 0.2);
-      padding-top: 8px;
-      margin-top: 4px;
+      padding-top: 6px;
+      margin-top: 2px;
     }
 
     .upgrade-btn {
       width: 100%;
-      padding: 8px 10px;
-      border-radius: 8px;
+      padding: 6px 8px;
+      border-radius: 6px;
       border: 1px solid rgba(148, 163, 184, 0.3);
       background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(139, 92, 246, 0.2));
       color: #f1f5f9;
       font-weight: 600;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       cursor: pointer;
       transition: all 0.2s ease;
     }
@@ -183,23 +185,23 @@
     .stat-card {
       background: rgba(51, 65, 85, 0.5);
       border: 1px solid rgba(148, 163, 184, 0.2);
-      border-radius: 12px;
-      padding: 16px;
+      border-radius: 10px;
+      padding: 12px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 4px;
     }
 
     .stat-label {
-      font-size: 0.75rem;
+      font-size: 0.65rem;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.05em;
       color: #64748b;
       font-weight: 600;
     }
 
     .stat-value {
-      font-size: 1.75rem;
+      font-size: 1.4rem;
       font-weight: 700;
       color: #f1f5f9;
     }
@@ -216,11 +218,11 @@
     .message-box {
       background: rgba(51, 65, 85, 0.5);
       border: 1px solid rgba(148, 163, 184, 0.2);
-      border-radius: 12px;
-      padding: 16px;
-      font-size: 0.95rem;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 0.8rem;
       color: #cbd5e1;
-      min-height: 50px;
+      min-height: 35px;
       display: flex;
       align-items: center;
     }
@@ -401,30 +403,32 @@
       .sidebar {
         width: 100%;
         order: -1;
+        max-height: 50vh;
       }
 
       .units-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
+        gap: 6px;
       }
 
       .unit-btn {
-        grid-template-columns: 1fr;
-        padding: 8px;
+        grid-template-columns: 32px 1fr;
+        padding: 4px;
+        gap: 4px;
       }
 
       .unit-icon {
-        width: 100%;
-        height: 40px;
-        margin-bottom: 4px;
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
       }
 
       .unit-info {
-        font-size: 0.7rem;
+        font-size: 0.6rem;
       }
 
       .unit-info h3 {
-        font-size: 0.8rem;
+        font-size: 0.7rem;
       }
 
       .stats-bar {
@@ -513,17 +517,17 @@
 
         <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(148, 163, 184, 0.2);">
           <label style="font-size: 0.8rem; color: #94a3b8; display: block; margin-bottom: 6px;">Unit Upgrades</label>
-          <select id="unitSelect" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid rgba(148, 163, 184, 0.3); background: rgba(51, 65, 85, 0.5); color: #f1f5f9; font-size: 0.8rem; margin-bottom: 6px;">
-            <option value="">Select Unit</option>
+          <select id="unitSelect" style="width: 100%; padding: 4px; border-radius: 4px; border: 1px solid rgba(148, 163, 184, 0.3); background: rgba(51, 65, 85, 0.5); color: #f1f5f9; font-size: 0.75rem; margin-bottom: 4px;">
+            <option value="">Unit</option>
           </select>
-          <select id="upgradeTypeSelect" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid rgba(148, 163, 184, 0.3); background: rgba(51, 65, 85, 0.5); color: #f1f5f9; font-size: 0.8rem; margin-bottom: 6px;">
-            <option value="">Select Upgrade</option>
-            <option value="damage">💥 Damage</option>
-            <option value="health">❤️ Health</option>
-            <option value="range">🎯 Range</option>
-            <option value="fireRate">⚡ Attack Speed</option>
+          <select id="upgradeTypeSelect" style="width: 100%; padding: 4px; border-radius: 4px; border: 1px solid rgba(148, 163, 184, 0.3); background: rgba(51, 65, 85, 0.5); color: #f1f5f9; font-size: 0.75rem; margin-bottom: 4px;">
+            <option value="">Stat</option>
+            <option value="damage">💥 Dmg</option>
+            <option value="health">❤️ HP</option>
+            <option value="range">🎯 Rng</option>
+            <option value="fireRate">⚡ Spd</option>
           </select>
-          <button id="unitUpgradeBtn" class="upgrade-btn" style="width: 100%;">Upgrade - <span id="unitUpgradeCost">$75</span></button>
+          <button id="unitUpgradeBtn" class="upgrade-btn" style="width: 100%; padding: 6px; font-size: 0.75rem;">Upg - <span id="unitUpgradeCost">$300</span></button>
         </div>
       </div>
     </div>
@@ -1636,8 +1640,29 @@
       state.units.forEach(u => {
         const isAttacking = u.attackTimer > 0;
         const attackPct = isAttacking ? u.attackTimer / 200 : 0;
+
+        // Draw upgrade glow if unit has upgrades
+        const totalUpgrades = unitUpgrades[u.id].damage + unitUpgrades[u.id].health + unitUpgrades[u.id].range + unitUpgrades[u.id].fireRate;
+        if (totalUpgrades > 0) {
+          const glowSize = 40 + totalUpgrades * 3;
+          const glowAlpha = 0.3 + (totalUpgrades * 0.1);
+          ctx.fillStyle = `rgba(34, 197, 94, ${glowAlpha})`;
+          ctx.beginPath();
+          ctx.arc(u.x, u.y, glowSize, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
         drawStickman(u.x, u.y, u.color, 1, u.walkPhase, isAttacking, attackPct, false);
         drawWeapon(u.x, u.y, u.color, u.id, isAttacking, attackPct, u.walkPhase);
+
+        // Draw upgrade level indicator
+        if (totalUpgrades > 0) {
+          ctx.fillStyle = '#22c55e';
+          ctx.font = 'bold 12px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.fillText('⬆' + totalUpgrades, u.x, u.y - 28);
+        }
 
         // Draw defend mode indicator
         if (u.isDefending) {
