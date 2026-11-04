@@ -1233,75 +1233,209 @@
       const endY = handY - 4 - (6 * attackPct) + attackLift;
 
       switch (weaponId) {
-        case 1: // Wizard
-          ctx.strokeStyle = '#fbbf24';
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.moveTo(handX, handY);
-          ctx.lineTo(endX, endY);
-          ctx.stroke();
-          ctx.fillStyle = '#a78bfa';
-          ctx.beginPath();
-          ctx.arc(endX, endY, 4, 0, Math.PI * 2);
-          ctx.fill();
-          break;
-        case 2: // Sniper
-          ctx.strokeStyle = '#64748b';
-          ctx.lineWidth = 3;
-          ctx.beginPath();
-          ctx.moveTo(handX, handY);
-          ctx.lineTo(endX, endY);
-          ctx.stroke();
-          break;
-        case 3: // Gunner
-          ctx.fillStyle = '#64748b';
-          ctx.fillRect(handX, handY - 3, 16 + weaponExtend * 0.7, 6);
-          break;
-        case 4: // Boxer
-          ctx.fillStyle = '#dc2626';
-          ctx.beginPath();
-          ctx.arc(handX + 8 + weaponExtend * 0.5, handY - 8, 5, 0, Math.PI * 2);
-          ctx.fill();
-          break;
-        case 5: // Ninja
-          ctx.strokeStyle = '#1f2937';
+        case 1: // Wizard Staff
+          // Staff handle
+          ctx.strokeStyle = '#8b4513';
           ctx.lineWidth = 2.5;
           ctx.beginPath();
           ctx.moveTo(handX, handY);
           ctx.lineTo(endX, endY);
           ctx.stroke();
-          break;
-        case 6: // Knight
-          ctx.strokeStyle = '#fbbf24';
-          ctx.lineWidth = 3;
+          // Orb at tip with glow
+          ctx.fillStyle = 'rgba(167, 139, 250, 0.4)';
           ctx.beginPath();
-          ctx.moveTo(handX, handY);
-          ctx.lineTo(endX, endY);
-          ctx.stroke();
-          break;
-        case 7: // Archer
-          ctx.strokeStyle = '#92400e';
+          ctx.arc(endX, endY, 6, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#a78bfa';
+          ctx.beginPath();
+          ctx.arc(endX, endY, 4, 0, Math.PI * 2);
+          ctx.fill();
+          // Orb shine
+          ctx.fillStyle = '#e9d5ff';
+          ctx.beginPath();
+          ctx.arc(endX - 1.5, endY - 1.5, 1.5, 0, Math.PI * 2);
+          ctx.fill();
+          // Top decoration
+          ctx.strokeStyle = '#fbbf24';
           ctx.lineWidth = 2;
           ctx.beginPath();
-          ctx.moveTo(handX, handY - 8);
-          ctx.quadraticCurveTo(handX + 8, handY, handX, handY + 8);
-          ctx.stroke();
-          ctx.strokeStyle = '#22c55e';
-          ctx.lineWidth = 1.5;
-          ctx.beginPath();
-          ctx.moveTo(handX + 8, handY);
-          ctx.lineTo(endX, endY);
+          ctx.moveTo(endX - 3, endY - 8);
+          ctx.lineTo(endX + 3, endY - 8);
           ctx.stroke();
           break;
-        case 8: // Sith
-          ctx.shadowColor = '#8b5cf6';
-          ctx.shadowBlur = 10 + 10 * attackPct;
-          ctx.strokeStyle = '#8b5cf6';
+        case 2: // Sniper Rifle
+          // Barrel
+          ctx.strokeStyle = '#374151';
           ctx.lineWidth = 4;
           ctx.beginPath();
-          ctx.moveTo(handX, handY);
+          ctx.moveTo(handX - 2, handY - 2);
           ctx.lineTo(endX, endY);
           ctx.stroke();
+          // Stock
+          ctx.fillStyle = '#92400e';
+          ctx.fillRect(handX - 8, handY - 4, 8, 8);
+          // Scope
+          ctx.strokeStyle = '#4b5563';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(handX - 2, handY - 6, 3, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.fillStyle = 'rgba(75, 85, 99, 0.3)';
+          ctx.beginPath();
+          ctx.arc(handX - 2, handY - 6, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+        case 3: // Gunner Gun
+          // Barrel
+          ctx.fillStyle = '#4b5563';
+          ctx.fillRect(handX, handY - 2.5, 16 + weaponExtend * 0.7, 5);
+          // Muzzle flash on attack
+          if (isAttacking && attackPct > 0.3) {
+            ctx.fillStyle = 'rgba(255, 165, 0, ' + (1 - attackPct) + ')';
+            ctx.fillRect(handX + 16 + weaponExtend * 0.7, handY - 3, 4 + attackPct * 4, 6);
+          }
+          // Grip
+          ctx.fillStyle = '#1f2937';
+          ctx.fillRect(handX - 2, handY + 3, 3, 6);
+          break;
+        case 4: // Boxer Gloves
+          // Left glove (main)
+          ctx.fillStyle = '#dc2626';
+          ctx.beginPath();
+          ctx.arc(handX + 8 + weaponExtend * 0.5, handY - 8, 6, 0, Math.PI * 2);
+          ctx.fill();
+          // Padding detail
+          ctx.strokeStyle = '#991b1b';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(handX + 8 + weaponExtend * 0.5, handY - 8, 5.5, 0, Math.PI * 2);
+          ctx.stroke();
+          // Wrist wrap
+          ctx.fillStyle = '#fbbf24';
+          ctx.fillRect(handX + 4, handY - 2, 8, 4);
+          // Glove shine
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+          ctx.beginPath();
+          ctx.arc(handX + 10, handY - 10, 2, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+        case 5: // Ninja Katana
+          // Blade with gradient effect
+          ctx.strokeStyle = '#e2e8f0';
+          ctx.lineWidth = 3.5;
+          ctx.beginPath();
+          ctx.moveTo(handX + 2, handY - 3);
+          ctx.lineTo(endX, endY);
+          ctx.stroke();
+          // Blade edge highlight
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(handX + 2, handY - 2);
+          ctx.lineTo(endX - 0.5, endY - 0.5);
+          ctx.stroke();
+          // Guard (tsuba)
+          ctx.fillStyle = '#dc2626';
+          ctx.beginPath();
+          ctx.arc(handX, handY, 4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#fbbf24';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(handX, handY, 3.5, 0, Math.PI * 2);
+          ctx.stroke();
+          // Handle
+          ctx.fillStyle = '#1f2937';
+          ctx.fillRect(handX - 1.5, handY + 4, 3, 6);
+          break;
+        case 6: // Knight Sword
+          // Blade
+          ctx.strokeStyle = '#cbd5e1';
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.moveTo(handX + 1, handY - 2);
+          ctx.lineTo(endX, endY);
+          ctx.stroke();
+          // Blade shine
+          ctx.strokeStyle = '#f1f5f9';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(handX + 1, handY - 1.5);
+          ctx.lineTo(endX - 0.5, endY - 0.5);
+          ctx.stroke();
+          // Cross guard
+          ctx.fillStyle = '#fbbf24';
+          ctx.fillRect(handX - 6, handY - 1.5, 12, 3);
+          // Handle/grip
+          ctx.fillStyle = '#8b4513';
+          ctx.fillRect(handX - 1.5, handY + 2, 3, 8);
+          // Pommel
+          ctx.fillStyle = '#fbbf24';
+          ctx.beginPath();
+          ctx.arc(handX, handY + 10, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+        case 7: // Archer Bow
+          // Bow limbs
+          ctx.strokeStyle = '#92400e';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(handX, handY - 10);
+          ctx.quadraticCurveTo(handX + 8, handY - 8, handX + 12, handY);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(handX, handY + 10);
+          ctx.quadraticCurveTo(handX + 8, handY + 8, handX + 12, handY);
+          ctx.stroke();
+          // Bow grip
+          ctx.fillStyle = '#654321';
+          ctx.fillRect(handX - 1, handY - 3, 2, 6);
+          // Bowstring
+          ctx.strokeStyle = '#d4af37';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(handX, handY - 10);
+          ctx.lineTo(handX + 8 + attackPct * 3, handY);
+          ctx.lineTo(handX, handY + 10);
+          ctx.stroke();
+          // Arrow
+          ctx.strokeStyle = '#22c55e';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(handX + 8 + attackPct * 3, handY);
+          ctx.lineTo(endX, endY);
+          ctx.stroke();
+          // Arrow point
+          ctx.fillStyle = '#22c55e';
+          ctx.beginPath();
+          ctx.arc(endX, endY, 2, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+        case 8: // Sith Lightsaber
+          // Glow effect (larger)
+          ctx.shadowColor = '#8b5cf6';
+          ctx.shadowBlur = 15 + 10 * attackPct;
+          // Main blade
+          ctx.strokeStyle = '#a78bfa';
+          ctx.lineWidth = 5;
+          ctx.beginPath();
+          ctx.moveTo(handX + 1, handY);
+          ctx.lineTo(endX, endY);
+          ctx.stroke();
+          // Inner bright blade
+          ctx.strokeStyle = '#ddd6fe';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(handX + 1, handY);
+          ctx.lineTo(endX, endY);
+          ctx.stroke();
+          // Hilt
+          ctx.fillStyle = '#1f2937';
+          ctx.fillRect(handX - 3, handY - 4, 6, 8);
+          // Hilt details
+          ctx.fillStyle = '#6b21a8';
+          ctx.fillRect(handX - 2, handY - 2, 4, 2);
+          ctx.fillRect(handX - 2, handY + 2, 4, 2);
           ctx.shadowBlur = 0;
           break;
       }
