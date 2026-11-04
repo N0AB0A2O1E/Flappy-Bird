@@ -1225,15 +1225,13 @@
       const handX = rightShoulderX + 8 * scale + rightArmSwing + attackArmExtend;
       const handY = neckY + 8 * scale + rightArmBend + attackArmLift;
 
-      // Weapon extension during attack
-      const weaponExtend = isAttacking ? 16 * attackPct * scale : 0;
-      const attackLift = isAttacking ? -8 * attackPct * scale : 0;
-
-      const endX = handX + (18 + weaponExtend) * direction + (isAttacking ? -2 * Math.sin(attackPct * Math.PI) * scale : 0);
-      const endY = handY - 4 - (6 * attackPct) + attackLift;
+      // Straight weapon extension (not bent)
+      const baseWeaponLength = 20;
+      const endX = handX + baseWeaponLength * direction;
+      const endY = handY;
 
       switch (weaponId) {
-        case 1: // Wizard Staff
+        case 1: // Wizard Staff - Magic Burst
           // Staff handle
           ctx.strokeStyle = '#8b4513';
           ctx.lineWidth = 2.5;
@@ -1241,20 +1239,39 @@
           ctx.moveTo(handX, handY);
           ctx.lineTo(endX, endY);
           ctx.stroke();
+
           // Orb at tip with glow
-          ctx.fillStyle = 'rgba(167, 139, 250, 0.4)';
+          const orbGlowSize = 6 + attackPct * 8;
+          ctx.fillStyle = `rgba(167, 139, 250, ${0.4 - attackPct * 0.3})`;
           ctx.beginPath();
-          ctx.arc(endX, endY, 6, 0, Math.PI * 2);
+          ctx.arc(endX, endY, orbGlowSize, 0, Math.PI * 2);
           ctx.fill();
+
           ctx.fillStyle = '#a78bfa';
           ctx.beginPath();
           ctx.arc(endX, endY, 4, 0, Math.PI * 2);
           ctx.fill();
+
           // Orb shine
           ctx.fillStyle = '#e9d5ff';
           ctx.beginPath();
           ctx.arc(endX - 1.5, endY - 1.5, 1.5, 0, Math.PI * 2);
           ctx.fill();
+
+          // Magic burst on attack
+          if (isAttacking && attackPct > 0.5) {
+            const burstSize = (attackPct - 0.5) * 20;
+            ctx.strokeStyle = `rgba(167, 139, 250, ${(1 - attackPct) * 0.8})`;
+            ctx.lineWidth = 2;
+            for (let i = 0; i < 6; i++) {
+              const angle = (Math.PI * 2 * i) / 6;
+              ctx.beginPath();
+              ctx.moveTo(endX, endY);
+              ctx.lineTo(endX + Math.cos(angle) * burstSize, endY + Math.sin(angle) * burstSize);
+              ctx.stroke();
+            }
+          }
+
           // Top decoration
           ctx.strokeStyle = '#fbbf24';
           ctx.lineWidth = 2;
@@ -1263,77 +1280,139 @@
           ctx.lineTo(endX + 3, endY - 8);
           ctx.stroke();
           break;
-        case 2: // Sniper Rifle
+        case 2: // Sniper Rifle - Recoil
+          // Calculate recoil effect
+          const recoilOffset = isAttacking ? Math.sin(attackPct * Math.PI) * 3 : 0;
+
           // Barrel
           ctx.strokeStyle = '#374151';
           ctx.lineWidth = 4;
           ctx.beginPath();
-          ctx.moveTo(handX - 2, handY - 2);
-          ctx.lineTo(endX, endY);
+          ctx.moveTo(handX - 2 - recoilOffset, handY - 2);
+          ctx.lineTo(endX - recoilOffset, endY);
           ctx.stroke();
+
           // Stock
           ctx.fillStyle = '#92400e';
-          ctx.fillRect(handX - 8, handY - 4, 8, 8);
+          ctx.fillRect(handX - 8 - recoilOffset, handY - 4, 8, 8);
+
           // Scope
           ctx.strokeStyle = '#4b5563';
           ctx.lineWidth = 2;
           ctx.beginPath();
-          ctx.arc(handX - 2, handY - 6, 3, 0, Math.PI * 2);
+          ctx.arc(handX - 2 - recoilOffset, handY - 6, 3, 0, Math.PI * 2);
           ctx.stroke();
           ctx.fillStyle = 'rgba(75, 85, 99, 0.3)';
           ctx.beginPath();
-          ctx.arc(handX - 2, handY - 6, 2.5, 0, Math.PI * 2);
+          ctx.arc(handX - 2 - recoilOffset, handY - 6, 2.5, 0, Math.PI * 2);
           ctx.fill();
+
+          // Muzzle flash
+          if (isAttacking && attackPct < 0.4) {
+            ctx.fillStyle = `rgba(255, 165, 0, ${(1 - attackPct * 2.5) * 0.8})`;
+            ctx.beginPath();
+            ctx.arc(endX - recoilOffset, endY, 4 + attackPct * 6, 0, Math.PI * 2);
+            ctx.fill();
+          }
           break;
-        case 3: // Gunner Gun
+        case 3: // Gunner Gun - Rapid Fire
+          // Recoil on each shot
+          const gunRecoil = isAttacking ? Math.sin(attackPct * Math.PI * 4) * 1.5 : 0;
+
           // Barrel
           ctx.fillStyle = '#4b5563';
-          ctx.fillRect(handX, handY - 2.5, 16 + weaponExtend * 0.7, 5);
-          // Muzzle flash on attack
-          if (isAttacking && attackPct > 0.3) {
-            ctx.fillStyle = 'rgba(255, 165, 0, ' + (1 - attackPct) + ')';
-            ctx.fillRect(handX + 16 + weaponExtend * 0.7, handY - 3, 4 + attackPct * 4, 6);
+          ctx.fillRect(handX - gunRecoil, handY - 2.5, 16, 5);
+
+          // Muzzle flashes (multiple for rapid fire effect)
+          if (isAttacking) {
+            for (let i = 0; i < 3; i++) {
+              const flashPct = (attackPct + i * 0.2) % 1;
+              if (flashPct < 0.35) {
+                ctx.fillStyle = `rgba(255, ${165 - i * 30}, 0, ${(1 - flashPct * 3) * 0.7})`;
+                ctx.beginPath();
+                ctx.arc(handX - gunRecoil + 16, handY, 3 + flashPct * 8, 0, Math.PI * 2);
+                ctx.fill();
+              }
+            }
           }
+
           // Grip
           ctx.fillStyle = '#1f2937';
-          ctx.fillRect(handX - 2, handY + 3, 3, 6);
+          ctx.fillRect(handX - gunRecoil - 2, handY + 3, 3, 6);
           break;
-        case 4: // Boxer Gloves
+        case 4: // Boxer Gloves - Punch Animation
+          // Punch extension and impact
+          const punchExtend = isAttacking ? Math.sin(attackPct * Math.PI) * 12 : 0;
+          const punchScale = 1 + (isAttacking ? Math.sin(attackPct * Math.PI) * 0.3 : 0);
+
           // Left glove (main)
           ctx.fillStyle = '#dc2626';
           ctx.beginPath();
-          ctx.arc(handX + 8 + weaponExtend * 0.5, handY - 8, 6, 0, Math.PI * 2);
+          ctx.arc(handX + 8 + punchExtend, handY - 8, 6 * punchScale, 0, Math.PI * 2);
           ctx.fill();
+
           // Padding detail
           ctx.strokeStyle = '#991b1b';
           ctx.lineWidth = 2;
           ctx.beginPath();
-          ctx.arc(handX + 8 + weaponExtend * 0.5, handY - 8, 5.5, 0, Math.PI * 2);
+          ctx.arc(handX + 8 + punchExtend, handY - 8, 5.5 * punchScale, 0, Math.PI * 2);
           ctx.stroke();
+
           // Wrist wrap
           ctx.fillStyle = '#fbbf24';
           ctx.fillRect(handX + 4, handY - 2, 8, 4);
+
           // Glove shine
           ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
           ctx.beginPath();
-          ctx.arc(handX + 10, handY - 10, 2, 0, Math.PI * 2);
+          ctx.arc(handX + 10 + punchExtend * 0.5, handY - 10, 2, 0, Math.PI * 2);
           ctx.fill();
+
+          // Impact effect
+          if (isAttacking && attackPct > 0.4 && attackPct < 0.7) {
+            ctx.strokeStyle = `rgba(220, 38, 38, ${(1 - (attackPct - 0.4) * 2) * 0.6})`;
+            ctx.lineWidth = 2;
+            const impactSize = (attackPct - 0.4) * 12;
+            ctx.beginPath();
+            ctx.arc(handX + 8 + punchExtend, handY - 8, 8 + impactSize, 0, Math.PI * 2);
+            ctx.stroke();
+          }
           break;
-        case 5: // Ninja Katana
+        case 5: // Ninja Katana - Quick Slice
+          // Slice arc on attack
+          if (isAttacking) {
+            const sliceAngle = attackPct * Math.PI * 1.5;
+            ctx.strokeStyle = `rgba(226, 232, 240, ${(1 - attackPct) * 0.4})`;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(handX, handY, 22, -Math.PI / 2, -Math.PI / 2 + sliceAngle);
+            ctx.stroke();
+          }
+
+          // Blade rotation on attack
+          const bladeAngle = isAttacking ? attackPct * Math.PI * 1.2 : 0;
+          ctx.save();
+          ctx.translate(handX, handY);
+          ctx.rotate(bladeAngle);
+
           // Blade with gradient effect
           ctx.strokeStyle = '#e2e8f0';
           ctx.lineWidth = 3.5;
           ctx.beginPath();
-          ctx.moveTo(handX + 2, handY - 3);
-          ctx.lineTo(endX, endY);
+          ctx.moveTo(2, -3);
+          ctx.lineTo(20, 0);
           ctx.stroke();
+
           // Blade edge highlight
           ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
           ctx.lineWidth = 1;
           ctx.beginPath();
-          ctx.moveTo(handX + 2, handY - 2);
-          ctx.lineTo(endX - 0.5, endY - 0.5);
+          ctx.moveTo(2, -2);
+          ctx.lineTo(19.5, -0.5);
           ctx.stroke();
+
+          ctx.restore();
+
           // Guard (tsuba)
           ctx.fillStyle = '#dc2626';
           ctx.beginPath();
@@ -1344,98 +1423,163 @@
           ctx.beginPath();
           ctx.arc(handX, handY, 3.5, 0, Math.PI * 2);
           ctx.stroke();
+
           // Handle
           ctx.fillStyle = '#1f2937';
           ctx.fillRect(handX - 1.5, handY + 4, 3, 6);
           break;
-        case 6: // Knight Sword
+        case 6: // Knight Sword - Overhead Slash
+          // Slash arc trail
+          if (isAttacking) {
+            const slashAngle = attackPct * Math.PI * 1.8;
+            ctx.strokeStyle = `rgba(203, 213, 225, ${(1 - attackPct) * 0.5})`;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(handX, handY, 25, -Math.PI / 4, -Math.PI / 4 + slashAngle);
+            ctx.stroke();
+          }
+
+          // Sword rotation on attack
+          const swordAngle = isAttacking ? -Math.PI / 4 + attackPct * Math.PI * 1.8 : 0;
+          ctx.save();
+          ctx.translate(handX, handY);
+          ctx.rotate(swordAngle);
+
           // Blade
           ctx.strokeStyle = '#cbd5e1';
           ctx.lineWidth = 4;
           ctx.beginPath();
-          ctx.moveTo(handX + 1, handY - 2);
-          ctx.lineTo(endX, endY);
+          ctx.moveTo(1, -2);
+          ctx.lineTo(22, 0);
           ctx.stroke();
+
           // Blade shine
           ctx.strokeStyle = '#f1f5f9';
           ctx.lineWidth = 1.5;
           ctx.beginPath();
-          ctx.moveTo(handX + 1, handY - 1.5);
-          ctx.lineTo(endX - 0.5, endY - 0.5);
+          ctx.moveTo(1, -1.5);
+          ctx.lineTo(21.5, -0.5);
           ctx.stroke();
+
           // Cross guard
           ctx.fillStyle = '#fbbf24';
-          ctx.fillRect(handX - 6, handY - 1.5, 12, 3);
+          ctx.fillRect(-6, -1.5, 12, 3);
+
           // Handle/grip
           ctx.fillStyle = '#8b4513';
-          ctx.fillRect(handX - 1.5, handY + 2, 3, 8);
-          // Pommel
+          ctx.fillRect(-1.5, 2, 3, 8);
+
+          ctx.restore();
+
+          // Pommel (fixed position)
           ctx.fillStyle = '#fbbf24';
           ctx.beginPath();
           ctx.arc(handX, handY + 10, 2.5, 0, Math.PI * 2);
           ctx.fill();
+
+          // Impact flash on hit
+          if (isAttacking && attackPct > 0.35 && attackPct < 0.65) {
+            ctx.fillStyle = `rgba(203, 213, 225, ${Math.sin(attackPct * Math.PI) * 0.5})`;
+            const flashX = handX + Math.cos(swordAngle) * 22;
+            const flashY = handY + Math.sin(swordAngle) * 22;
+            ctx.beginPath();
+            ctx.arc(flashX, flashY, 6, 0, Math.PI * 2);
+            ctx.fill();
+          }
           break;
-        case 7: // Archer Bow
-          // Bow limbs
+        case 7: // Archer Bow - Draw & Release
+          // Bow limbs flex during draw
+          const bowBend = isAttacking ? 1 + attackPct * 2 : 1;
           ctx.strokeStyle = '#92400e';
           ctx.lineWidth = 3;
           ctx.beginPath();
           ctx.moveTo(handX, handY - 10);
-          ctx.quadraticCurveTo(handX + 8, handY - 8, handX + 12, handY);
+          ctx.quadraticCurveTo(handX + 8 * bowBend, handY - 8 * bowBend, handX + 12, handY);
           ctx.stroke();
           ctx.beginPath();
           ctx.moveTo(handX, handY + 10);
-          ctx.quadraticCurveTo(handX + 8, handY + 8, handX + 12, handY);
+          ctx.quadraticCurveTo(handX + 8 * bowBend, handY + 8 * bowBend, handX + 12, handY);
           ctx.stroke();
+
           // Bow grip
           ctx.fillStyle = '#654321';
           ctx.fillRect(handX - 1, handY - 3, 2, 6);
-          // Bowstring
+
+          // Bowstring draw animation
+          const drawPull = isAttacking ? Math.min(attackPct, 0.8) * 8 : 0;
           ctx.strokeStyle = '#d4af37';
           ctx.lineWidth = 1.5;
           ctx.beginPath();
           ctx.moveTo(handX, handY - 10);
-          ctx.lineTo(handX + 8 + attackPct * 3, handY);
+          ctx.lineTo(handX + 8 - drawPull, handY);
           ctx.lineTo(handX, handY + 10);
           ctx.stroke();
-          // Arrow
-          ctx.strokeStyle = '#22c55e';
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.moveTo(handX + 8 + attackPct * 3, handY);
-          ctx.lineTo(endX, endY);
-          ctx.stroke();
-          // Arrow point
-          ctx.fillStyle = '#22c55e';
-          ctx.beginPath();
-          ctx.arc(endX, endY, 2, 0, Math.PI * 2);
-          ctx.fill();
+
+          // Arrow (drawn back then released)
+          if (attackPct < 0.9) {
+            ctx.strokeStyle = '#22c55e';
+            ctx.lineWidth = 2;
+            const arrowX = handX + 8 - drawPull;
+            ctx.beginPath();
+            ctx.moveTo(arrowX, handY);
+            ctx.lineTo(arrowX + 20, handY);
+            ctx.stroke();
+
+            // Arrow point
+            ctx.fillStyle = '#22c55e';
+            ctx.beginPath();
+            ctx.arc(arrowX + 20, handY, 2, 0, Math.PI * 2);
+            ctx.fill();
+          }
           break;
-        case 8: // Sith Lightsaber
-          // Glow effect (larger)
+        case 8: // Sith Lightsaber - Spin Attack
+          // Blade rotation on attack
+          const lightsaberAngle = isAttacking ? attackPct * Math.PI * 2.5 : 0;
+          ctx.save();
+          ctx.translate(handX, handY);
+          ctx.rotate(lightsaberAngle);
+
+          // Glow effect (larger during attack)
+          const glowIntensity = 15 + (isAttacking ? attackPct * 15 : 10);
           ctx.shadowColor = '#8b5cf6';
-          ctx.shadowBlur = 15 + 10 * attackPct;
+          ctx.shadowBlur = glowIntensity;
+
           // Main blade
           ctx.strokeStyle = '#a78bfa';
           ctx.lineWidth = 5;
           ctx.beginPath();
-          ctx.moveTo(handX + 1, handY);
-          ctx.lineTo(endX, endY);
+          ctx.moveTo(1, 0);
+          ctx.lineTo(22, 0);
           ctx.stroke();
+
           // Inner bright blade
           ctx.strokeStyle = '#ddd6fe';
           ctx.lineWidth = 2.5;
           ctx.beginPath();
-          ctx.moveTo(handX + 1, handY);
-          ctx.lineTo(endX, endY);
+          ctx.moveTo(1, 0);
+          ctx.lineTo(22, 0);
           ctx.stroke();
-          // Hilt
+
+          // Spin trail effect
+          if (isAttacking && attackPct > 0.2) {
+            ctx.strokeStyle = `rgba(167, 139, 250, ${(1 - attackPct) * 0.3})`;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(0, 0, 18, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+
+          ctx.restore();
+
+          // Hilt (fixed position)
           ctx.fillStyle = '#1f2937';
           ctx.fillRect(handX - 3, handY - 4, 6, 8);
+
           // Hilt details
           ctx.fillStyle = '#6b21a8';
           ctx.fillRect(handX - 2, handY - 2, 4, 2);
           ctx.fillRect(handX - 2, handY + 2, 4, 2);
+
           ctx.shadowBlur = 0;
           break;
       }
